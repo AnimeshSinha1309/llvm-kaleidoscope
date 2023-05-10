@@ -9,6 +9,10 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/src/compiler",
+            "args": ["-f", "test/test_simple.kld"],
+            "stopAtEntry": false,
+            "environment": [],
+            "externalConsole": false,
             "MIMode": "gdb",
             "cwd": "${workspaceFolder}",
             "setupCommands": [
@@ -24,6 +28,5 @@
                 }
             ]
         }
-
     ]
 }
