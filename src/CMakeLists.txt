@@ -1,4 +1,4 @@
-set(SOURCE_FILES compiler.cpp)
+set(SOURCE_FILES compiler.cpp lexer.cpp)
 
 FIND_PACKAGE(Boost 1.40 COMPONENTS program_options REQUIRED )
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )

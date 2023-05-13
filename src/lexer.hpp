@@ -1,8 +1,12 @@
+#include <cctype>
 #include <iostream>
 #include <optional>
+#include <variant>
+#include <vector>
 
 class Token
 {
+public:
     enum class TokenType
     {
         // Terminators
@@ -12,17 +16,21 @@ class Token
         TOKEN_EXTERN = 3,
         // Primary
         TOKEN_IDENTIFIER = 4,
-        TOKER_NUMBER = 5,
+        TOKEN_NUMBER = 5,
+        // Invalid
+        TOKEN_SPECIAL = -1,
     };
 
     TokenType type;
-    std::optional<std::string> name;
+    std::optional<std::variant<std::string, double, char>> data;
 
-    Token(TokenType _type, std::optional<std::string> _name) : name(_name), type(_type) {}
+    Token(TokenType _type);
+    Token(TokenType _type, std::string _name);
+    Token(TokenType _type, double _value);
+    Token(TokenType _type, char _operator);
 
-public:
-    static Token get_token(std::ifstream&& fin)
-    {
-        return {TokenType::TOKEN_EOF, ""};
-    }
+    operator bool();
 };
+
+Token get_token(std::ifstream& fin);
+std::vector<Token> tokenize(std::ifstream& fin);

@@ -34,8 +34,7 @@ int main(int argc, char* argv[])
             std::cout << "Compiling: " << file_name << std::endl;
             std::ifstream fin(file_name, std::fstream::in);
 
-            // Running the compilation process
-            Token::get_token(std::move(fin));
+            tokenize(fin);
         }
     }
 }
