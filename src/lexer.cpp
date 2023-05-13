@@ -92,20 +92,6 @@ std::vector<Token> tokenize(std::ifstream& fin)
     {
         Token token = get_token(fin);
         all_tokens.push_back(token);
-
-        if (token.type == Token::TokenType::TOKEN_DEF)
-            std::cout << "DEF" << std::endl;
-        if (token.type == Token::TokenType::TOKEN_EOF)
-            std::cout << "EOF" << std::endl;
-        if (token.type == Token::TokenType::TOKEN_EXTERN)
-            std::cout << "EXT" << std::endl;
-        if (token.type == Token::TokenType::TOKEN_IDENTIFIER)
-            std::cout << "IDF " << std::get<std::string>(token.data.value()) << std::endl;
-        if (token.type == Token::TokenType::TOKEN_SPECIAL)
-            std::cout << "OPT " << std::get<char>(token.data.value()) << std::endl;
-        if (token.type == Token::TokenType::TOKEN_NUMBER)
-            std::cout << "NUM " << std::get<double>(token.data.value()) << std::endl;
-
     } while (all_tokens.back().type != Token::TokenType::TOKEN_EOF);
     return all_tokens;
 }
