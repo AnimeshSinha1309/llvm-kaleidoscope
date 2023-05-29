@@ -1,4 +1,5 @@
 #include <cctype>
+#include <deque>
 #include <iostream>
 #include <optional>
 #include <variant>
@@ -33,4 +34,4 @@ public:
 };
 
 Token get_token(std::ifstream& fin);
-std::vector<Token> tokenize(std::ifstream& fin);
+std::deque<Token> tokenize(std::ifstream& fin);

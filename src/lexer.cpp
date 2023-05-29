@@ -85,9 +85,9 @@ Token get_token(std::ifstream& fin)
         return Token::TokenType::TOKEN_EOF;
 }
 
-std::vector<Token> tokenize(std::ifstream& fin)
+std::deque<Token> tokenize(std::ifstream& fin)
 {
-    std::vector<Token> all_tokens;
+    std::deque<Token> all_tokens;
     do
     {
         Token token = get_token(fin);
