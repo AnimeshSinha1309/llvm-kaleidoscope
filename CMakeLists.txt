@@ -7,3 +7,5 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 add_subdirectory(src)
 add_subdirectory(test)
+
+add_subdirectory(deps/x_spdlog)

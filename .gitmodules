@@ -1,0 +1,3 @@
+[submodule "deps/x_spdlog"]
+	path = deps/x_spdlog
+	url = git@github.com:gabime/spdlog.git
