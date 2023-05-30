@@ -1,7 +1,8 @@
-set(SOURCE_FILES compiler.cpp lexer.cpp ast.cpp)
+set(SOURCE_FILES lexer.cpp ast.cpp parser.cpp)
 
-FIND_PACKAGE(Boost 1.40 COMPONENTS program_options REQUIRED )
-INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+add_library(compiler_lib ${SOURCE_FILES})
+target_link_libraries(compiler_lib Boost::program_options spdlog::spdlog)
 
-add_executable(compiler ${SOURCE_FILES})
-target_link_libraries(compiler ${Boost_LIBRARIES} spdlog::spdlog)
+add_executable(compiler compiler.cpp)
+target_link_libraries(compiler compiler_lib Boost::program_options
+                      spdlog::spdlog)

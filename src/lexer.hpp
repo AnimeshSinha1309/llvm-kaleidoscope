@@ -1,9 +1,14 @@
+#pragma once
+
 #include <cctype>
 #include <deque>
 #include <iostream>
 #include <optional>
 #include <variant>
 #include <vector>
+
+namespace kccani
+{
 
 class Token
 {
@@ -31,7 +36,12 @@ public:
     Token(TokenType _type, char _operator);
 
     operator bool();
+    [[nodiscard]] bool operator ==(std::string other) const noexcept;
+    [[nodiscard]] bool operator ==(double other) const noexcept;
+    [[nodiscard]] bool operator ==(char other) const noexcept;
 };
 
 Token get_token(std::ifstream& fin);
 std::deque<Token> tokenize(std::ifstream& fin);
+
+}

@@ -1,8 +1,13 @@
+#pragma once
+
 #include <iostream>
 #include <memory>
 #include <vector>
 
 #include "lexer.hpp"
+
+namespace kccani
+{
 
 const std::vector<char> OPERATOR_PRECEDENCE_ORDER = {'*', '-', '+', '<'};
 
@@ -73,3 +78,5 @@ public:
         std::unique_ptr<ExprAST> _body
     );
 };
+
+}

@@ -3,6 +3,8 @@
 #include <cassert>
 #include <fstream>
 
+namespace kccani
+{
 
 Token::Token(TokenType _type) : type(_type), data(std::nullopt)
 {
@@ -29,6 +31,27 @@ Token::Token(TokenType _type, char _operator) : type(_type), data(_operator)
 Token::operator bool()
 {
     return this->type != TokenType::TOKEN_EOF;
+}
+
+[[nodiscard]] bool Token::operator ==(std::string other) const noexcept
+{
+    if (this->type != TokenType::TOKEN_IDENTIFIER)
+        return false;
+    return std::get<std::string>(this->data.value()) == other;
+}
+
+[[nodiscard]] bool Token::operator ==(double other) const noexcept
+{
+    if (this->type != TokenType::TOKEN_NUMBER)
+        return false;
+    return std::get<double>(this->data.value()) == other;
+}
+
+[[nodiscard]] bool Token::operator ==(char other) const noexcept
+{
+    if (this->type != TokenType::TOKEN_SPECIAL)
+        return false;
+    return std::get<char>(this->data.value()) == other;
 }
 
 
@@ -94,4 +117,6 @@ std::deque<Token> tokenize(std::ifstream& fin)
         all_tokens.push_back(token);
     } while (all_tokens.back().type != Token::TokenType::TOKEN_EOF);
     return all_tokens;
+}
+
 }

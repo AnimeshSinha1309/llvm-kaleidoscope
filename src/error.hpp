@@ -1,5 +1,10 @@
+#pragma once
+
 #include <iostream>
 #include <exception>
+
+namespace kccani
+{
 
 class ParsingException : public std::exception
 {
@@ -15,3 +20,5 @@ public:
         return message.c_str();
     }
 };
+
+}

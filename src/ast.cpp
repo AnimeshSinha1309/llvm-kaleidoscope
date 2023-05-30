@@ -4,6 +4,9 @@
 #include <cassert>
 #include <variant>
 
+namespace kccani
+{
+
 NumberExprAST::NumberExprAST(
     double _value
 ) : value(_value) {}
@@ -33,3 +36,4 @@ FunctionAST::FunctionAST(
     std::unique_ptr<ExprAST> _body
 ) : prototype(std::move(_prototype)), body(std::move(_body)) {}
 
+}
