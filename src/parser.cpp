@@ -5,9 +5,6 @@
 namespace kccani
 {
 
-static std::unique_ptr<ExprAST> parse_expr(
-    std::deque<Token> program
-);
 static std::unique_ptr<ExprAST> parse_number_expr(
     std::deque<Token> program
 );
@@ -17,14 +14,14 @@ static std::unique_ptr<ExprAST> parse_parenthesized_expr(
 static std::unique_ptr<ExprAST> parse_identifier_expr(
     std::deque<Token> program
 );
-
-
+static std::unique_ptr<ExprAST> parse_primary(
+    std::deque<Token> program
+);
 static std::unique_ptr<ExprAST> parse_expr(
     std::deque<Token> program
-)
-{
-    return nullptr;
-}
+);
+
+// Primary Expression Parsing
 
 static std::unique_ptr<ExprAST> parse_number_expr(
     std::deque<Token> program
@@ -98,6 +95,38 @@ static std::unique_ptr<ExprAST> parse_identifier_expr(
         program.pop_front();
     }
     return std::make_unique<FunctionCallExprAST>(identifier_name, std::move(args));
+}
+
+static std::unique_ptr<ExprAST> parse_primary(
+    std::deque<Token> program
+)
+{
+    if (program.front().type == Token::TokenType::TOKEN_IDENTIFIER)
+    {
+        return parse_identifier_expr(program);
+    }
+    else if (program.front().type == Token::TokenType::TOKEN_NUMBER)
+    {
+        return parse_number_expr(program);
+    }
+    else if (program.front() == '(')
+    {
+        return parse_parenthesized_expr(program);
+    }
+    else
+    {
+        spdlog::error("Attempted primary expression parsing non a non-primary expression");
+        return nullptr;
+    }
+}
+
+// Binary expressions and assignments
+
+static std::unique_ptr<ExprAST> parse_expr(
+    std::deque<Token> program
+)
+{
+    return nullptr;
 }
 
 }

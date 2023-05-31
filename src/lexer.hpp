@@ -23,7 +23,7 @@ public:
         // Primary
         TOKEN_IDENTIFIER = 4,
         TOKEN_NUMBER = 5,
-        // Invalid
+        // Operators
         TOKEN_SPECIAL = -1,
     };
 
