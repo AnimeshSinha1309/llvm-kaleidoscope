@@ -39,6 +39,9 @@ public:
     [[nodiscard]] bool operator ==(std::string other) const noexcept;
     [[nodiscard]] bool operator ==(double other) const noexcept;
     [[nodiscard]] bool operator ==(char other) const noexcept;
+    
+    template<typename T>
+    [[nodiscard]] bool operator !=(T other) const noexcept;
 };
 
 Token get_token(std::ifstream& fin);

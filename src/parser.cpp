@@ -6,28 +6,6 @@
 namespace kccani
 {
 
-static std::unique_ptr<ExprAST> parse_number_expr(
-    std::deque<Token>& program
-);
-static std::unique_ptr<ExprAST> parse_parenthesized_expr(
-    std::deque<Token>& program
-);
-static std::unique_ptr<ExprAST> parse_identifier_expr(
-    std::deque<Token>& program
-);
-static std::unique_ptr<ExprAST> parse_primary(
-    std::deque<Token>& program
-);
-
-static std::unique_ptr<ExprAST> parse_binary_op_rhs(
-    std::deque<Token>& program,
-    int expression_precedence,
-    std::unique_ptr<ExprAST> lhs
-);
-static std::unique_ptr<ExprAST> parse_expr(
-    std::deque<Token>& program
-);
-
 // Primary Expression Parsing
 
 static std::unique_ptr<ExprAST> parse_number_expr(
@@ -173,6 +151,76 @@ static std::unique_ptr<ExprAST> parse_expr(
         return nullptr;
 
     return parse_binary_op_rhs(program, 0, std::move(lhs));
+}
+
+// Parsing function blocks and top level (main code in script)
+
+static std::unique_ptr<FunctionPrototypeAST> parse_function_proto(
+    std::deque<Token>& program
+)
+{
+    if (program.front().type != Token::TokenType::TOKEN_IDENTIFIER)
+    {
+        spdlog::error("Expected function name in prototype");
+        return nullptr;
+    }
+    std::string function_name = std::get<std::string>(program.front().data.value());
+    program.pop_front();
+
+    if (program.front() != '(')
+    {
+        spdlog::error("Expected '(' in prototype");
+        return nullptr;
+    }
+
+    std::vector<std::string> arguments;
+    while (program.front().type == Token::TokenType::TOKEN_IDENTIFIER)
+       arguments.push_back(std::get<std::string>(program.front().data.value()));
+    if (program.front() != ')')
+    {
+        spdlog::error("Expected ')' in prototype");
+        return nullptr;
+    }
+    program.pop_front();
+
+    return std::make_unique<FunctionPrototypeAST>(function_name, std::move(arguments));
+}
+
+static std::unique_ptr<FunctionAST> parse_function_definition(
+    std::deque<Token>& program
+)
+{
+    program.pop_front();
+    auto prototype = parse_function_proto(program);
+    if (!prototype)
+        return nullptr;
+    auto body = parse_expr(program);
+    if (!body)
+        return nullptr;
+    return std::make_unique<FunctionAST>(std::move(prototype), std::move(body));
+}
+
+static std::unique_ptr<FunctionAST> parse_top_level_expr(
+    std::deque<Token>& program
+)
+{
+    auto expr = parse_expr(program);
+    if (!expr)
+        return nullptr;
+
+    auto prototype = std::make_unique<FunctionPrototypeAST>(
+        "__anon_expr",
+        std::vector<std::string>()
+    );
+    return std::make_unique<FunctionAST>(std::move(prototype), std::move(expr));
+}
+
+static std::unique_ptr<FunctionPrototypeAST> parse_extern(
+    std::deque<Token>& program
+)
+{
+    program.pop_front();
+    return parse_function_proto(program);
 }
 
 }
