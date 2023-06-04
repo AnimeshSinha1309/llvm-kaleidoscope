@@ -117,15 +117,13 @@ std::unique_ptr<ExprAST> parse_binary_op_rhs(
 {
     const std::map<char, int> OP_PRECEDENCE = {{'<', 100}, {'+', 200}, {'-', 300}, {'*', 400}};
 
-    assert(program.front().type == Token::TokenType::TOKEN_SPECIAL);
-    char opcode = std::get<char>(program.front().data.value());
-
-    while (true) {
+    while (!program.empty() && program.front().type == Token::TokenType::TOKEN_SPECIAL) {
+        char opcode = std::get<char>(program.front().data.value());
         int token_precedence = OP_PRECEDENCE.count(opcode) != 0
             ? OP_PRECEDENCE.at(opcode)
             : std::numeric_limits<int>::min();
         if (token_precedence < expression_precedence)
-            return lhs;
+            return std::move(lhs);
 
         program.pop_front();
         auto rhs = parse_primary(program);
@@ -134,10 +132,9 @@ std::unique_ptr<ExprAST> parse_binary_op_rhs(
 
         // if opcode binds less tightly with RHS than the operator after RHS,
         // let the pending operator take RHS as its LHS.
-        char next_opcode;
         if (!program.empty() && program.front().type == Token::TokenType::TOKEN_SPECIAL)
         {
-            next_opcode = std::get<char>(program.front().data.value());
+            char next_opcode = std::get<char>(program.front().data.value());
             int next_precedence = OP_PRECEDENCE.count(next_opcode) != 0
                 ? OP_PRECEDENCE.at(next_opcode)
                 : std::numeric_limits<int>::min();
@@ -147,21 +144,16 @@ std::unique_ptr<ExprAST> parse_binary_op_rhs(
                     return nullptr;
             }
         }
-        else
-        {
-            next_opcode = '\0';
-        }
 
         lhs = std::make_unique<BinaryExprAST>(opcode, std::move(lhs), std::move(rhs));
-        opcode = next_opcode;
     }
+    return std::move(lhs);
 }
 
 std::unique_ptr<ExprAST> parse_expr(
     std::deque<Token>& program
 ) {
     auto lhs = parse_primary(program);
-    NumberExprAST* ast(dynamic_cast<NumberExprAST*>(lhs.get()));
     if (!lhs)
         return nullptr;
 

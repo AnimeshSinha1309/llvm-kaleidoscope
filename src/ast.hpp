@@ -14,6 +14,8 @@ const std::vector<char> OPERATOR_PRECEDENCE_ORDER = {'*', '-', '+', '<'};
 class ExprAST {
 public:
     virtual ~ExprAST() = default;
+
+    virtual std::string to_string() = 0;
 };
 
 class NumberExprAST : public ExprAST {
@@ -23,6 +25,8 @@ public:
     NumberExprAST(
         double _value
     );
+
+    std::string to_string();
 };
 
 class VariableExprAST : public ExprAST {
@@ -32,6 +36,8 @@ public:
     VariableExprAST(
         const std::string &_name
     );
+
+    std::string to_string();
 };
 
 class BinaryExprAST : public ExprAST {
@@ -44,6 +50,8 @@ public:
         std::unique_ptr<ExprAST> _lhs,
         std::unique_ptr<ExprAST> _rhs
     );
+
+    std::string to_string();
 };
 
 class FunctionCallExprAST : public ExprAST {
@@ -55,6 +63,8 @@ public:
         const std::string &_callee,
         std::vector<std::unique_ptr<ExprAST>> _args
     );
+
+    std::string to_string();
 };
 
 class FunctionPrototypeAST {
@@ -66,6 +76,8 @@ public:
         const std::string &_name,
         std::vector<std::string> _args
     );
+
+    std::string to_string();
 };
 
 class FunctionAST {
@@ -77,6 +89,8 @@ public:
         std::unique_ptr<FunctionPrototypeAST> _prototype,
         std::unique_ptr<ExprAST> _body
     );
+
+    std::string to_string();
 };
 
 }

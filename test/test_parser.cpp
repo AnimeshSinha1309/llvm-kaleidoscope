@@ -127,5 +127,7 @@ TEST(ParserTests, GeneratesTheCorrectParsedExpression)
     };
     std::unique_ptr<ExprAST> expr = parse_expr(token_list);
     BinaryExprAST* ast(dynamic_cast<BinaryExprAST*>(expr.get()));
-    ASSERT_EQ(ast->opcode, '*');
+    ASSERT_EQ(
+        expr->to_string(),
+        "(3.000000) * ((2.000000) + ((5.000000) * (4.000000)))");
 }
