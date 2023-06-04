@@ -17,28 +17,28 @@ public:
 };
 
 class NumberExprAST : public ExprAST {
+public:
     double value;
 
-public:
     NumberExprAST(
         double _value
     );
 };
 
 class VariableExprAST : public ExprAST {
+public:
     std::string name;
 
-public:
     VariableExprAST(
         const std::string &_name
     );
 };
 
 class BinaryExprAST : public ExprAST {
+public:
     char opcode;
     std::unique_ptr<ExprAST> lhs, rhs;
 
-public:
     BinaryExprAST(
         char _opcode,
         std::unique_ptr<ExprAST> _lhs,
@@ -47,10 +47,10 @@ public:
 };
 
 class FunctionCallExprAST : public ExprAST {
+public:
     std::string callee;
     std::vector<std::unique_ptr<ExprAST>> args;
 
-public:
     FunctionCallExprAST(
         const std::string &_callee,
         std::vector<std::unique_ptr<ExprAST>> _args
@@ -58,10 +58,10 @@ public:
 };
 
 class FunctionPrototypeAST {
+public:
     std::string name;
     std::vector<std::string> args;
 
-public:
     FunctionPrototypeAST(
         const std::string &_name,
         std::vector<std::string> _args
@@ -69,10 +69,10 @@ public:
 };
 
 class FunctionAST {
+public:
     std::unique_ptr<FunctionPrototypeAST> prototype;
     std::unique_ptr<ExprAST> body;
 
-public:
     FunctionAST(
         std::unique_ptr<FunctionPrototypeAST> _prototype,
         std::unique_ptr<ExprAST> _body

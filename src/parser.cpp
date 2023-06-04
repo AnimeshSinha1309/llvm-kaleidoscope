@@ -2,23 +2,25 @@
 
 #include <spdlog/spdlog.h>
 #include <map>
+#include <limits>
 
 namespace kccani
 {
 
 // Primary Expression Parsing
 
-static std::unique_ptr<ExprAST> parse_number_expr(
+std::unique_ptr<ExprAST> parse_number_expr(
     std::deque<Token>& program
 )
 {
     Token number_token = program.front();
-    auto result = std::make_unique<NumberExprAST>(number_token);
+    double number_value = std::get<double>(number_token.data.value());
+    auto result = std::make_unique<NumberExprAST>(number_value);
     program.pop_front();
     return std::move(result);
 }
 
-static std::unique_ptr<ExprAST> parse_parenthesized_expr(
+std::unique_ptr<ExprAST> parse_parenthesized_expr(
     std::deque<Token>& program
 )
 {
@@ -28,7 +30,7 @@ static std::unique_ptr<ExprAST> parse_parenthesized_expr(
     {
         return nullptr;
     }
-    if (program.front() != ')')
+    if (!(program.front() == ')'))
     {
         spdlog::error("Expected `)` to close parenthesized expression");
         return nullptr;
@@ -37,7 +39,7 @@ static std::unique_ptr<ExprAST> parse_parenthesized_expr(
     return expression;
 }
 
-static std::unique_ptr<ExprAST> parse_identifier_expr(
+std::unique_ptr<ExprAST> parse_identifier_expr(
     std::deque<Token>& program
 )
 {
@@ -82,7 +84,7 @@ static std::unique_ptr<ExprAST> parse_identifier_expr(
     return std::make_unique<FunctionCallExprAST>(identifier_name, std::move(args));
 }
 
-static std::unique_ptr<ExprAST> parse_primary(
+std::unique_ptr<ExprAST> parse_primary(
     std::deque<Token>& program
 )
 {
@@ -107,7 +109,7 @@ static std::unique_ptr<ExprAST> parse_primary(
 
 // Binary expressions and assignments
 
-static std::unique_ptr<ExprAST> parse_binary_op_rhs(
+std::unique_ptr<ExprAST> parse_binary_op_rhs(
     std::deque<Token>& program,
     int expression_precedence,
     std::unique_ptr<ExprAST> lhs
@@ -119,7 +121,9 @@ static std::unique_ptr<ExprAST> parse_binary_op_rhs(
     char opcode = std::get<char>(program.front().data.value());
 
     while (true) {
-        int token_precedence = OP_PRECEDENCE.at(opcode);
+        int token_precedence = OP_PRECEDENCE.count(opcode) != 0
+            ? OP_PRECEDENCE.at(opcode)
+            : std::numeric_limits<int>::min();
         if (token_precedence < expression_precedence)
             return lhs;
 
@@ -130,12 +134,22 @@ static std::unique_ptr<ExprAST> parse_binary_op_rhs(
 
         // if opcode binds less tightly with RHS than the operator after RHS,
         // let the pending operator take RHS as its LHS.
-        char next_opcode = std::get<char>(program.front().data.value());
-        int next_precedence = OP_PRECEDENCE.at(next_opcode);
-        if (token_precedence < next_precedence) {
-            rhs = parse_binary_op_rhs(program, token_precedence + 1, std::move(rhs));
-            if (!rhs)
-                return nullptr;
+        char next_opcode;
+        if (!program.empty() && program.front().type == Token::TokenType::TOKEN_SPECIAL)
+        {
+            next_opcode = std::get<char>(program.front().data.value());
+            int next_precedence = OP_PRECEDENCE.count(next_opcode) != 0
+                ? OP_PRECEDENCE.at(next_opcode)
+                : std::numeric_limits<int>::min();
+            if (token_precedence < next_precedence) {
+                rhs = parse_binary_op_rhs(program, token_precedence + 1, std::move(rhs));
+                if (!rhs)
+                    return nullptr;
+            }
+        }
+        else
+        {
+            next_opcode = '\0';
         }
 
         lhs = std::make_unique<BinaryExprAST>(opcode, std::move(lhs), std::move(rhs));
@@ -143,10 +157,11 @@ static std::unique_ptr<ExprAST> parse_binary_op_rhs(
     }
 }
 
-static std::unique_ptr<ExprAST> parse_expr(
+std::unique_ptr<ExprAST> parse_expr(
     std::deque<Token>& program
 ) {
     auto lhs = parse_primary(program);
+    NumberExprAST* ast(dynamic_cast<NumberExprAST*>(lhs.get()));
     if (!lhs)
         return nullptr;
 
@@ -155,7 +170,7 @@ static std::unique_ptr<ExprAST> parse_expr(
 
 // Parsing function blocks and top level (main code in script)
 
-static std::unique_ptr<FunctionPrototypeAST> parse_function_proto(
+std::unique_ptr<FunctionPrototypeAST> parse_function_proto(
     std::deque<Token>& program
 )
 {
@@ -176,7 +191,7 @@ static std::unique_ptr<FunctionPrototypeAST> parse_function_proto(
     std::vector<std::string> arguments;
     while (program.front().type == Token::TokenType::TOKEN_IDENTIFIER)
        arguments.push_back(std::get<std::string>(program.front().data.value()));
-    if (program.front() != ')')
+    if (!(program.front() == ')'))
     {
         spdlog::error("Expected ')' in prototype");
         return nullptr;
@@ -186,7 +201,7 @@ static std::unique_ptr<FunctionPrototypeAST> parse_function_proto(
     return std::make_unique<FunctionPrototypeAST>(function_name, std::move(arguments));
 }
 
-static std::unique_ptr<FunctionAST> parse_function_definition(
+std::unique_ptr<FunctionAST> parse_function_definition(
     std::deque<Token>& program
 )
 {
@@ -200,7 +215,7 @@ static std::unique_ptr<FunctionAST> parse_function_definition(
     return std::make_unique<FunctionAST>(std::move(prototype), std::move(body));
 }
 
-static std::unique_ptr<FunctionAST> parse_top_level_expr(
+std::unique_ptr<FunctionAST> parse_top_level_expr(
     std::deque<Token>& program
 )
 {
@@ -215,7 +230,7 @@ static std::unique_ptr<FunctionAST> parse_top_level_expr(
     return std::make_unique<FunctionAST>(std::move(prototype), std::move(expr));
 }
 
-static std::unique_ptr<FunctionPrototypeAST> parse_extern(
+std::unique_ptr<FunctionPrototypeAST> parse_extern(
     std::deque<Token>& program
 )
 {

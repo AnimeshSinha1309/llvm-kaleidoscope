@@ -54,12 +54,6 @@ Token::operator bool()
     return std::get<char>(this->data.value()) == other;
 }
 
-template<typename T>
-bool Token::operator !=(T other) const noexcept
-{
-    return !(*this == other);
-}
-
 char stream_char = ' ';
 
 Token get_token(std::ifstream& fin)
