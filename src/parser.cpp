@@ -50,7 +50,7 @@ std::unique_ptr<ExprAST> parse_identifier_expr(
     std::string identifier_name = std::get<std::string>(identifier.data.value());
     program.pop_front();
     // If it's not a function call, process it as a variable name
-    if (program.front() != '(')
+    if (!(program.front() == '('))
     {
         return std::make_unique<VariableExprAST>(identifier_name);
     }
@@ -73,8 +73,11 @@ std::unique_ptr<ExprAST> parse_identifier_expr(
             return nullptr;
 
         if (program.front() == ')')
+        {
+            program.pop_front();
             break;
-        if (program.front() != ',')
+        }
+        if (!(program.front() == ','))
         {
             spdlog::error("Expected ')' or ',' after end of expression in argument list");
             return nullptr;
@@ -174,15 +177,19 @@ std::unique_ptr<FunctionPrototypeAST> parse_function_proto(
     std::string function_name = std::get<std::string>(program.front().data.value());
     program.pop_front();
 
-    if (program.front() != '(')
+    if (!(program.front() == '('))
     {
         spdlog::error("Expected '(' in prototype");
         return nullptr;
     }
+    program.pop_front();
 
     std::vector<std::string> arguments;
     while (program.front().type == Token::TokenType::TOKEN_IDENTIFIER)
+    {
        arguments.push_back(std::get<std::string>(program.front().data.value()));
+       program.pop_front();
+    }
     if (!(program.front() == ')'))
     {
         spdlog::error("Expected ')' in prototype");
@@ -228,6 +235,41 @@ std::unique_ptr<FunctionPrototypeAST> parse_extern(
 {
     program.pop_front();
     return parse_function_proto(program);
+}
+
+std::vector<std::pair<ParsedAstType, ParsedAstContentType>>
+parse_program(std::deque<Token>& program) {
+    std::vector<std::pair<ParsedAstType, ParsedAstContentType>> parsed_asts;
+    while (true)
+    {
+        if (program.front().type == Token::TokenType::TOKEN_EOF)
+        {
+            break;
+        }
+        else if (program.front() == ';')
+        {
+            program.pop_front();
+        }
+        else if (program.front().type == Token::TokenType::TOKEN_DEF)
+        {
+            ParsedAstContentType defn{parse_function_definition(program)};
+            if (std::get<std::unique_ptr<FunctionAST>>(defn) != nullptr)
+                parsed_asts.emplace_back(ParsedAstType::DEFINITION, std::move(defn));
+        }
+        else if (program.front().type == Token::TokenType::TOKEN_EXTERN)
+        {
+            ParsedAstContentType call{parse_extern(program)};
+            if (std::get<std::unique_ptr<FunctionPrototypeAST>>(call) != nullptr)
+                parsed_asts.emplace_back(ParsedAstType::EXTERN, std::move(call));
+        }
+        else
+        {
+            ParsedAstContentType expr{parse_expr(program)};
+            if (std::get<std::unique_ptr<ExprAST>>(expr) != nullptr)
+                parsed_asts.emplace_back(ParsedAstType::EXPRESSION, std::move(expr));
+        }
+    }
+    return parsed_asts; 
 }
 
 }

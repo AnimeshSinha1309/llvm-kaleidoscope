@@ -113,8 +113,11 @@ std::deque<Token> tokenize(std::ifstream& fin)
     do
     {
         Token token = get_token(fin);
-        all_tokens.push_back(token);
-    } while (all_tokens.back().type != Token::TokenType::TOKEN_EOF);
+        if (!(token == '\n'))
+            all_tokens.push_back(token);
+    } while (
+        all_tokens.empty() ||
+        all_tokens.back().type != Token::TokenType::TOKEN_EOF);
     return all_tokens;
 }
 

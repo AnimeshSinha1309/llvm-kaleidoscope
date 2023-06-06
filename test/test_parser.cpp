@@ -1,5 +1,6 @@
 #include <memory>
 #include <iostream>
+#include <fstream>
 #include <gtest/gtest.h>
 
 #include "../src/ast.hpp"
@@ -130,4 +131,38 @@ TEST(ParserTests, GeneratesTheCorrectParsedExpression)
     ASSERT_EQ(
         expr->to_string(),
         "(3.000000) * ((2.000000) + ((5.000000) * (4.000000)))");
+}
+
+TEST(ParserTests, ParsesFunctionPrototypeCorrectly)
+{
+    // 3 * (2 + 5 * 4)
+    std::deque<Token> token_list = {
+        Token{Token::TokenType::TOKEN_IDENTIFIER, "func"},
+        Token{Token::TokenType::TOKEN_SPECIAL, '('},
+        Token{Token::TokenType::TOKEN_IDENTIFIER, "x"},
+        Token{Token::TokenType::TOKEN_IDENTIFIER, "y"},
+        Token{Token::TokenType::TOKEN_SPECIAL, ')'},
+    };
+    std::unique_ptr<FunctionPrototypeAST> fn = parse_function_proto(token_list);
+    FunctionPrototypeAST* ast(dynamic_cast<FunctionPrototypeAST*>(fn.get()));
+    ASSERT_EQ(ast->to_string(), "def func(x, y)");
+}
+
+TEST(ParserTests, TopLevelParsingParsesASimpleFile)
+{
+    std::ifstream fin("../../test/sample_programs/test_simple.kld", std::ios::in);
+    if (!fin.is_open())
+        FAIL();
+    auto token_list = kccani::tokenize(fin);
+    auto ast_list = parse_program(token_list);
+
+    ASSERT_EQ(ast_list.size(), 2);
+
+    ASSERT_EQ(ast_list[0].first, ParsedAstType::DEFINITION);
+    auto ast_1 = std::get<std::unique_ptr<FunctionAST>>(std::move(ast_list[0].second));
+    ASSERT_EQ(ast_1->to_string(), "def fib(x){(fib((x) - (1.000000))) + (fib((x) - (2.000000)))}");
+
+    ASSERT_EQ(ast_list[1].first, ParsedAstType::EXPRESSION);
+    auto ast_2 = std::get<std::unique_ptr<ExprAST>>(std::move(ast_list[1].second));
+    ASSERT_EQ(ast_2->to_string(), "fib(6.000000)");
 }

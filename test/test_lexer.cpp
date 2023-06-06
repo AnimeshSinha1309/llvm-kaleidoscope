@@ -31,8 +31,7 @@ TEST(LexerTests, OutputsTheRightNumberOfTokensOfCorrectTypes)
             count_val++;
             break;
         case Token::TokenType::TOKEN_SPECIAL:
-            if (std::get<char>(token.data.value()) != '\n')
-                count_op++;
+            count_op++;
             break;
         }
     }
@@ -40,5 +39,5 @@ TEST(LexerTests, OutputsTheRightNumberOfTokensOfCorrectTypes)
     EXPECT_EQ(count_eof, 1);
     EXPECT_EQ(count_var, 7);
     EXPECT_EQ(count_val, 3);
-    EXPECT_EQ(count_op, 11);
+    EXPECT_EQ(count_op, 12);
 }
