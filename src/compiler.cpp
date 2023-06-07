@@ -4,6 +4,8 @@
 #include <boost/program_options.hpp>
 
 #include "lexer.hpp"
+#include "ast.hpp"
+#include "parser.hpp"
 
 
 int main(int argc, char* argv[])
@@ -34,7 +36,8 @@ int main(int argc, char* argv[])
             std::cout << "Compiling: " << file_name << std::endl;
             std::ifstream fin(file_name, std::fstream::in);
 
-            auto tokens = tokenize(fin);
+            auto tokens = kccani::tokenize(fin);
+            kccani::parse_expr(tokens);
         }
     }
 }

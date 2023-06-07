@@ -3,6 +3,8 @@
 #include <cassert>
 #include <fstream>
 
+namespace kccani
+{
 
 Token::Token(TokenType _type) : type(_type), data(std::nullopt)
 {
@@ -31,6 +33,26 @@ Token::operator bool()
     return this->type != TokenType::TOKEN_EOF;
 }
 
+[[nodiscard]] bool Token::operator ==(std::string other) const noexcept
+{
+    if (this->type != TokenType::TOKEN_IDENTIFIER)
+        return false;
+    return std::get<std::string>(this->data.value()) == other;
+}
+
+[[nodiscard]] bool Token::operator ==(double other) const noexcept
+{
+    if (this->type != TokenType::TOKEN_NUMBER)
+        return false;
+    return std::get<double>(this->data.value()) == other;
+}
+
+[[nodiscard]] bool Token::operator ==(char other) const noexcept
+{
+    if (this->type != TokenType::TOKEN_SPECIAL)
+        return false;
+    return std::get<char>(this->data.value()) == other;
+}
 
 char stream_char = ' ';
 
@@ -85,13 +107,18 @@ Token get_token(std::ifstream& fin)
         return Token::TokenType::TOKEN_EOF;
 }
 
-std::vector<Token> tokenize(std::ifstream& fin)
+std::deque<Token> tokenize(std::ifstream& fin)
 {
-    std::vector<Token> all_tokens;
+    std::deque<Token> all_tokens;
     do
     {
         Token token = get_token(fin);
-        all_tokens.push_back(token);
-    } while (all_tokens.back().type != Token::TokenType::TOKEN_EOF);
+        if (!(token == '\n'))
+            all_tokens.push_back(token);
+    } while (
+        all_tokens.empty() ||
+        all_tokens.back().type != Token::TokenType::TOKEN_EOF);
     return all_tokens;
+}
+
 }

@@ -7,3 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 add_subdirectory(src)
 add_subdirectory(test)
+
+add_subdirectory(deps/spdlog)
+add_subdirectory(deps/gtest)
+add_subdirectory(deps/boost)
