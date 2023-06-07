@@ -148,7 +148,7 @@ TEST(ParserTests, ParsesFunctionPrototypeCorrectly)
     ASSERT_EQ(ast->to_string(), "def func(x, y)");
 }
 
-TEST(ParserTests, TopLevelParsingParsesASimpleFile)
+TEST(ParserTests, TopLevelParsingParsesASimpleFileWithFunctionDefinitions)
 {
     std::ifstream fin("../../test/sample_programs/test_simple.kld", std::ios::in);
     if (!fin.is_open())
@@ -165,4 +165,23 @@ TEST(ParserTests, TopLevelParsingParsesASimpleFile)
     ASSERT_EQ(ast_list[1].first, ParsedAstType::EXPRESSION);
     auto ast_2 = std::get<std::unique_ptr<ExprAST>>(std::move(ast_list[1].second));
     ASSERT_EQ(ast_2->to_string(), "fib(6.000000)");
+}
+
+TEST(ParserTests, TopLevelParsingParsesASimpleFileWithExternAndCall)
+{
+    std::ifstream fin("../../test/sample_programs/test_extern.kld", std::ios::in);
+    if (!fin.is_open())
+        FAIL();
+    auto token_list = kccani::tokenize(fin);
+    auto ast_list = parse_program(token_list);
+
+    ASSERT_EQ(ast_list.size(), 2);
+
+    ASSERT_EQ(ast_list[0].first, ParsedAstType::EXTERN);
+    auto ast_1 = std::get<std::unique_ptr<FunctionPrototypeAST>>(std::move(ast_list[0].second));
+    ASSERT_EQ(ast_1->to_string(), "def atan2(x, y)");
+
+    ASSERT_EQ(ast_list[1].first, ParsedAstType::EXPRESSION);
+    auto ast_2 = std::get<std::unique_ptr<ExprAST>>(std::move(ast_list[1].second));
+    ASSERT_EQ(ast_2->to_string(), "atan2(13.000000, (5.000000) + (8.000000))");
 }
