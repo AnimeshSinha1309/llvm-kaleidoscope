@@ -158,12 +158,12 @@ TEST(ParserTests, TopLevelParsingParsesASimpleFileWithFunctionDefinitions)
 
     ASSERT_EQ(ast_list.size(), 2);
 
-    ASSERT_EQ(ast_list[0].first, ParsedAstType::DEFINITION);
-    auto ast_1 = std::get<std::unique_ptr<FunctionAST>>(std::move(ast_list[0].second));
+    ASSERT_TRUE(std::holds_alternative<std::unique_ptr<FunctionAST>>(ast_list[0]));
+    auto ast_1 = std::get<std::unique_ptr<FunctionAST>>(std::move(ast_list[0]));
     ASSERT_EQ(ast_1->to_string(), "def fib(x){(fib((x) - (1.000000))) + (fib((x) - (2.000000)))}");
 
-    ASSERT_EQ(ast_list[1].first, ParsedAstType::EXPRESSION);
-    auto ast_2 = std::get<std::unique_ptr<ExprAST>>(std::move(ast_list[1].second));
+    ASSERT_TRUE(std::holds_alternative<std::unique_ptr<ExprAST>>(ast_list[1]));
+    auto ast_2 = std::get<std::unique_ptr<ExprAST>>(std::move(ast_list[1]));
     ASSERT_EQ(ast_2->to_string(), "fib(6.000000)");
 }
 
@@ -177,11 +177,11 @@ TEST(ParserTests, TopLevelParsingParsesASimpleFileWithExternAndCall)
 
     ASSERT_EQ(ast_list.size(), 2);
 
-    ASSERT_EQ(ast_list[0].first, ParsedAstType::EXTERN);
-    auto ast_1 = std::get<std::unique_ptr<FunctionPrototypeAST>>(std::move(ast_list[0].second));
+    ASSERT_TRUE(std::holds_alternative<std::unique_ptr<FunctionPrototypeAST>>(ast_list[0]));
+    auto ast_1 = std::get<std::unique_ptr<FunctionPrototypeAST>>(std::move(ast_list[0]));
     ASSERT_EQ(ast_1->to_string(), "def atan2(x, y)");
 
-    ASSERT_EQ(ast_list[1].first, ParsedAstType::EXPRESSION);
-    auto ast_2 = std::get<std::unique_ptr<ExprAST>>(std::move(ast_list[1].second));
+    ASSERT_TRUE(std::holds_alternative<std::unique_ptr<ExprAST>>(ast_list[1]));
+    auto ast_2 = std::get<std::unique_ptr<ExprAST>>(std::move(ast_list[1]));
     ASSERT_EQ(ast_2->to_string(), "atan2(13.000000, (5.000000) + (8.000000))");
 }

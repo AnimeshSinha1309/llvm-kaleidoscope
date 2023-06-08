@@ -93,4 +93,9 @@ public:
     std::string to_string();
 };
 
+using ParsedAstContentType = std::variant<
+    std::unique_ptr<FunctionAST>,
+    std::unique_ptr<FunctionPrototypeAST>,
+    std::unique_ptr<ExprAST>>;
+
 }
