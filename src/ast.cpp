@@ -83,4 +83,24 @@ std::string FunctionAST::to_string()
     return this->prototype->to_string() + "{" + this->body->to_string() + "}";
 }
 
+ExprAST::ExpressionType NumberExprAST::get_type()
+{
+    return ExprAST::ExpressionType::NUMBER_EXPR;
+}
+
+ExprAST::ExpressionType VariableExprAST::get_type()
+{
+    return ExprAST::ExpressionType::VARIABLE_EXPR;
+}
+
+ExprAST::ExpressionType BinaryExprAST::get_type()
+{
+    return ExprAST::ExpressionType::BINARY_EXPR;
+}
+
+ExprAST::ExpressionType FunctionCallExprAST::get_type()
+{
+    return ExprAST::ExpressionType::FUNCTION_CALL_EXPR;
+}
+
 }

@@ -1,11 +1,14 @@
 #include <iostream>
 #include <fstream>
+#include <type_traits>
+#include <variant>
 
 #include <boost/program_options.hpp>
 
 #include "lexer.hpp"
 #include "ast.hpp"
 #include "parser.hpp"
+#include "codegen.hpp"
 
 
 int main(int argc, char* argv[])
@@ -37,7 +40,11 @@ int main(int argc, char* argv[])
             std::ifstream fin(file_name, std::fstream::in);
 
             auto tokens = kccani::tokenize(fin);
-            kccani::parse_expr(tokens);
+            auto asts = kccani::parse_program(tokens);
+
+            kccani::CodeGeneratorLLVM codegen;
+            for (auto &ast : asts)
+                std::visit<kccani::CodeGeneratorLLVM, kccani::ParsedAstContentType>(std::move(codegen), std::move(ast));
         }
     }
 }
