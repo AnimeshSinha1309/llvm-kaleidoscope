@@ -21,9 +21,9 @@ class CodeGeneratorLLVM
     std::map<std::string, llvm::Value*> named_values;
 
 public:
-    llvm::Value* operator()(std::unique_ptr<ExprAST>&& ast);
-    llvm::Function* operator()(std::unique_ptr<FunctionAST>&& ast);
-    llvm::Function* operator()(std::unique_ptr<FunctionPrototypeAST>&& ast);
+    std::variant<llvm::Value*, llvm::Function*> operator()(std::unique_ptr<ExprAST>&& ast);
+    std::variant<llvm::Value*, llvm::Function*> operator()(std::unique_ptr<FunctionAST>&& ast);
+    std::variant<llvm::Value*, llvm::Function*> operator()(std::unique_ptr<FunctionPrototypeAST>&& ast);
 };
 
 }
