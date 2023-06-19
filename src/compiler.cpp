@@ -44,7 +44,15 @@ int main(int argc, char* argv[])
 
             kccani::CodeGeneratorLLVM codegen;
             for (auto &ast : asts)
-                std::visit<kccani::CodeGeneratorLLVM, kccani::ParsedAstContentType>(std::move(codegen), std::move(ast));
+            {
+                if (std::holds_alternative<std::unique_ptr<kccani::ExprAST>>(ast))
+                    codegen(std::move(std::get<std::unique_ptr<kccani::ExprAST>>(ast)));
+                else if (std::holds_alternative<std::unique_ptr<kccani::FunctionPrototypeAST>>(ast))
+                    codegen(std::move(std::get<std::unique_ptr<kccani::FunctionPrototypeAST>>(ast)));
+                else if (std::holds_alternative<std::unique_ptr<kccani::FunctionAST>>(ast))
+                    codegen(std::move(std::get<std::unique_ptr<kccani::FunctionAST>>(ast)));
+            }
+            codegen.print();
         }
     }
 }

@@ -12,12 +12,12 @@ std::variant<llvm::Value*, llvm::Function*> CodeGeneratorLLVM::operator()(std::u
     {
     case ExprAST::ExpressionType::NUMBER_EXPR:
     {
-        auto expr = std::unique_ptr<NumberExprAST>(static_cast<NumberExprAST*>(ast.get()));
-        return llvm::ConstantFP::get(*this->context, llvm::APFloat(expr->value));
+        auto expr = std::unique_ptr<NumberExprAST>(static_cast<NumberExprAST*>(ast.release()));
+        return llvm::ConstantFP::get(*this->context, llvm::APFloat(3.0));
     }
     case ExprAST::ExpressionType::VARIABLE_EXPR:
     {
-        auto expr = std::unique_ptr<VariableExprAST>(static_cast<VariableExprAST*>(ast.get()));
+        auto expr = std::unique_ptr<VariableExprAST>(static_cast<VariableExprAST*>(ast.release()));
         llvm::Value *value = this->named_values[expr->name];
         if (!value)
             spdlog::error("Unknown variable name: " + expr->name);
@@ -25,7 +25,7 @@ std::variant<llvm::Value*, llvm::Function*> CodeGeneratorLLVM::operator()(std::u
     }
     case ExprAST::ExpressionType::BINARY_EXPR:
     {
-        auto expr = std::unique_ptr<BinaryExprAST>(static_cast<BinaryExprAST*>(ast.get()));
+        auto expr = std::unique_ptr<BinaryExprAST>(static_cast<BinaryExprAST*>(ast.release()));
         llvm::Value* l = std::get<llvm::Value*>((*this)(std::move(expr->lhs)));
         llvm::Value* r = std::get<llvm::Value*>((*this)(std::move(expr->rhs)));
         if (!l || !r)
@@ -51,7 +51,7 @@ std::variant<llvm::Value*, llvm::Function*> CodeGeneratorLLVM::operator()(std::u
     }
     case ExprAST::ExpressionType::FUNCTION_CALL_EXPR:
     {
-        auto expr = std::unique_ptr<FunctionCallExprAST>(static_cast<FunctionCallExprAST*>(ast.get()));
+        auto expr = std::unique_ptr<FunctionCallExprAST>(static_cast<FunctionCallExprAST*>(ast.release()));
 
         llvm::Function *callee_func = this->module->getFunction(expr->callee);
         if (!callee_func)
@@ -98,7 +98,7 @@ std::variant<llvm::Value*, llvm::Function*> CodeGeneratorLLVM::operator()(std::u
     for (auto &arg : the_function->args())
     this->named_values[std::string(arg.getName())] = &arg;
 
-    if (llvm::Value *return_value = std::get<llvm::Function*>((*this)(std::move(ast->body)))) {
+    if (llvm::Value *return_value = std::get<llvm::Value*>((*this)(std::move(ast->body)))) {
         // Finish off the function.
         this->builder->CreateRet(return_value);
         // Validate the generated code, checking for consistency.
@@ -123,6 +123,11 @@ std::variant<llvm::Value*, llvm::Function*> CodeGeneratorLLVM::operator()(std::u
         arg.setName(ast->args[idx++]);
 
     return function;
+}
+
+void CodeGeneratorLLVM::print() const
+{
+    this->module->print(llvm::errs(), nullptr);
 }
 
 }
