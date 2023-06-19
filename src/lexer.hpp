@@ -41,7 +41,7 @@ public:
     [[nodiscard]] bool operator ==(char other) const noexcept;
 };
 
-Token get_token(std::ifstream& fin);
-std::deque<Token> tokenize(std::ifstream& fin);
+Token get_token(std::istream& fin);
+std::deque<Token> tokenize(std::istream& fin);
 
 }

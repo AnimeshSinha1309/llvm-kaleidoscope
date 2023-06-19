@@ -44,15 +44,20 @@ int main(int argc, char* argv[])
 
             kccani::CodeGeneratorLLVM codegen;
             for (auto &ast : asts)
-            {
-                if (std::holds_alternative<std::unique_ptr<kccani::ExprAST>>(ast))
-                    codegen(std::move(std::get<std::unique_ptr<kccani::ExprAST>>(ast)));
-                else if (std::holds_alternative<std::unique_ptr<kccani::FunctionPrototypeAST>>(ast))
-                    codegen(std::move(std::get<std::unique_ptr<kccani::FunctionPrototypeAST>>(ast)));
-                else if (std::holds_alternative<std::unique_ptr<kccani::FunctionAST>>(ast))
-                    codegen(std::move(std::get<std::unique_ptr<kccani::FunctionAST>>(ast)));
-            }
+                std::visit(std::ref(codegen), std::move(ast));
+            std::cout << "Final LLVM Intermediate Representation output:" << std::endl;
             codegen.print();
         }
+    }
+    else
+    {
+        kccani::CodeGeneratorLLVM codegen;
+        std::cout << "kccani> ";
+
+        auto token_stream = kccani::tokenize(std::cin);
+        auto ast_stream = kccani::parse_program(token_stream);
+        for (auto &ast : ast_stream)
+            std::visit(std::ref(codegen), std::move(ast));
+        codegen.print();
     }
 }
