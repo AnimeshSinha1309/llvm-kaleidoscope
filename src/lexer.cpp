@@ -56,7 +56,7 @@ Token::operator bool()
 
 char stream_char = ' ';
 
-Token get_token(std::ifstream& fin)
+Token get_token(std::istream& fin)
 {
     fin >> std::noskipws;
 
@@ -107,7 +107,7 @@ Token get_token(std::ifstream& fin)
         return Token::TokenType::TOKEN_EOF;
 }
 
-std::deque<Token> tokenize(std::ifstream& fin)
+std::deque<Token> tokenize(std::istream& fin)
 {
     std::deque<Token> all_tokens;
     do

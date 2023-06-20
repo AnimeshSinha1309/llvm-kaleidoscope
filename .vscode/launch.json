@@ -9,12 +9,36 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/src/compiler",
-            "args": ["-f", "test/test_simple.kld"],
+            "args": ["--file", "../../test/sample_programs/test_simple.kld"],
             "stopAtEntry": false,
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/build/src",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Run interpreter",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/src/compiler",
+            "args": [],
+            "stopAtEntry": false,
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "cwd": "${workspaceFolder}/build/src",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

@@ -237,9 +237,8 @@ std::unique_ptr<FunctionPrototypeAST> parse_extern(
     return parse_function_proto(program);
 }
 
-std::vector<std::pair<ParsedAstType, ParsedAstContentType>>
-parse_program(std::deque<Token>& program) {
-    std::vector<std::pair<ParsedAstType, ParsedAstContentType>> parsed_asts;
+std::vector<ParsedAstContentType> parse_program(std::deque<Token>& program) {
+    std::vector<ParsedAstContentType> parsed_asts;
     while (true)
     {
         if (program.front().type == Token::TokenType::TOKEN_EOF)
@@ -254,19 +253,19 @@ parse_program(std::deque<Token>& program) {
         {
             ParsedAstContentType defn{parse_function_definition(program)};
             if (std::get<std::unique_ptr<FunctionAST>>(defn) != nullptr)
-                parsed_asts.emplace_back(ParsedAstType::DEFINITION, std::move(defn));
+                parsed_asts.emplace_back(std::move(defn));
         }
         else if (program.front().type == Token::TokenType::TOKEN_EXTERN)
         {
             ParsedAstContentType call{parse_extern(program)};
             if (std::get<std::unique_ptr<FunctionPrototypeAST>>(call) != nullptr)
-                parsed_asts.emplace_back(ParsedAstType::EXTERN, std::move(call));
+                parsed_asts.emplace_back(std::move(call));
         }
         else
         {
             ParsedAstContentType expr{parse_expr(program)};
             if (std::get<std::unique_ptr<ExprAST>>(expr) != nullptr)
-                parsed_asts.emplace_back(ParsedAstType::EXPRESSION, std::move(expr));
+                parsed_asts.emplace_back(std::move(expr));
         }
     }
     return parsed_asts; 

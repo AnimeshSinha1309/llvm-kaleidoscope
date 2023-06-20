@@ -42,20 +42,8 @@ std::unique_ptr<FunctionPrototypeAST> parse_extern(
     std::deque<Token>& program
 );
 
-enum class ParsedAstType
-{
-    DEFINITION,
-    EXTERN,
-    EXPRESSION,
-};
-
-typedef std::variant<
-            std::unique_ptr<FunctionAST>,
-            std::unique_ptr<FunctionPrototypeAST>,
-            std::unique_ptr<ExprAST>>
-    ParsedAstContentType;
-
-std::vector<std::pair<ParsedAstType, ParsedAstContentType>>
-parse_program(std::deque<Token>& program);
+std::vector<ParsedAstContentType> parse_program(
+    std::deque<Token>& program
+);
 
 }

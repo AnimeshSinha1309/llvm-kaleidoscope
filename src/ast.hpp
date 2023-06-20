@@ -11,14 +11,25 @@ namespace kccani
 
 const std::vector<char> OPERATOR_PRECEDENCE_ORDER = {'*', '-', '+', '<'};
 
-class ExprAST {
+class ExprAST
+{
 public:
+    enum class ExpressionType
+    {
+        NUMBER_EXPR,
+        VARIABLE_EXPR,
+        BINARY_EXPR,
+        FUNCTION_CALL_EXPR,
+    };
+
     virtual ~ExprAST() = default;
 
     virtual std::string to_string() = 0;
+    virtual ExpressionType get_type() = 0;
 };
 
-class NumberExprAST : public ExprAST {
+class NumberExprAST : public ExprAST
+{
 public:
     double value;
 
@@ -27,9 +38,11 @@ public:
     );
 
     std::string to_string();
+    ExprAST::ExpressionType get_type() override;
 };
 
-class VariableExprAST : public ExprAST {
+class VariableExprAST : public ExprAST
+{
 public:
     std::string name;
 
@@ -38,9 +51,11 @@ public:
     );
 
     std::string to_string();
+    ExprAST::ExpressionType get_type() override;
 };
 
-class BinaryExprAST : public ExprAST {
+class BinaryExprAST : public ExprAST
+{
 public:
     char opcode;
     std::unique_ptr<ExprAST> lhs, rhs;
@@ -52,9 +67,11 @@ public:
     );
 
     std::string to_string();
+    ExprAST::ExpressionType get_type() override;
 };
 
-class FunctionCallExprAST : public ExprAST {
+class FunctionCallExprAST : public ExprAST
+{
 public:
     std::string callee;
     std::vector<std::unique_ptr<ExprAST>> args;
@@ -65,9 +82,11 @@ public:
     );
 
     std::string to_string();
+    ExprAST::ExpressionType get_type() override;
 };
 
-class FunctionPrototypeAST {
+class FunctionPrototypeAST
+{
 public:
     std::string name;
     std::vector<std::string> args;
@@ -80,7 +99,8 @@ public:
     std::string to_string();
 };
 
-class FunctionAST {
+class FunctionAST
+{
 public:
     std::unique_ptr<FunctionPrototypeAST> prototype;
     std::unique_ptr<ExprAST> body;
@@ -92,5 +112,10 @@ public:
 
     std::string to_string();
 };
+
+using ParsedAstContentType = std::variant<
+    std::unique_ptr<FunctionAST>,
+    std::unique_ptr<FunctionPrototypeAST>,
+    std::unique_ptr<ExprAST>>;
 
 }
