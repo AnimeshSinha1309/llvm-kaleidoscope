@@ -52,12 +52,24 @@ int main(int argc, char* argv[])
     else
     {
         kccani::CodeGeneratorLLVM codegen;
-        std::cout << "kccani> ";
+        while (true)
+        {
+            std::cout << "kccani> ";
+            std::string input_string;
+            getline(std::cin, input_string);
+            std::stringstream input_stream(input_string);
 
-        auto token_stream = kccani::tokenize(std::cin);
-        auto ast_stream = kccani::parse_program(token_stream);
-        for (auto &ast : ast_stream)
-            std::visit(std::ref(codegen), std::move(ast));
-        codegen.print();
+            auto token_stream = kccani::tokenize(input_stream);
+            auto ast_stream = kccani::parse_program(token_stream);
+            for (auto &ast : ast_stream)
+            {
+                auto result = std::visit(std::ref(codegen), std::move(ast));
+                if (std::holds_alternative<llvm::Function*>(result))
+                    std::cout << std::get<llvm::Function*>(result) << std::endl;
+                else if (std::holds_alternative<llvm::Value*>(result))
+                    std::cout << std::get<llvm::Value*>(result) << std::endl;
+            }
+            codegen.print();
+        }
     }
 }

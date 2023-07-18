@@ -13,7 +13,7 @@ TEST(LexerTests, OutputsTheRightNumberOfTokensOfCorrectTypes)
         FAIL();
     auto token_list = kccani::tokenize(fin);
     
-    int count_def = 0, count_var = 0, count_val = 0, count_op = 0, count_eof;
+    int count_def = 0, count_var = 0, count_val = 0, count_op = 0, count_eof = 0;
     for (auto token : token_list)
     {
         switch (token.type)

@@ -7,7 +7,7 @@
             "options": {
                 "cwd": "${workspaceRoot}/build"
             },
-            "command": "cmake -GNinja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug ${workspaceRoot} & cmake --build .",
+            "command": "cmake -GNinja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug ${workspaceRoot} & cmake --build . -j 32",
             "problemMatcher": {
                 "owner": "cpp",
                 "fileLocation": ["relative", "${workspaceRoot}"],
