@@ -11,11 +11,14 @@ TEST(LexerTests, OutputsTheRightNumberOfTokensOfCorrectTypes)
     std::ifstream fin("../../test/sample_programs/test_simple.kld", std::ios::in);
     if (!fin.is_open())
         FAIL();
-    auto token_list = kccani::tokenize(fin);
-    
+    kccani::Lexer lexer(fin);
+    auto token_list = lexer.fetch_all();
+
     int count_def = 0, count_var = 0, count_val = 0, count_op = 0, count_eof = 0;
-    for (auto token : token_list)
+    while (!token_list.empty())
     {
+        auto token = token_list.front();
+        token_list.pop();
         switch (token.type)
         {
         case Token::TokenType::TOKEN_DEF:

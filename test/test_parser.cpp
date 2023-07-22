@@ -2,19 +2,42 @@
 #include <iostream>
 #include <fstream>
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include "../src/ast.hpp"
+#include "../src/lexer.hpp"
 #include "../src/parser.hpp"
 
 using namespace kccani;
+
+
+class MockLexer : public Lexer
+{
+public:
+    MockLexer(std::istream& stream) : Lexer(stream) {};
+    MOCK_METHOD(Token, get, (), (override));
+    MOCK_METHOD(Token, peek, (), (override));
+};
+
 
 TEST(ParserTests, NumberExpressionsGetParsedAsNumberExpr)
 {
     // 3
     std::deque<Token> token_list = {
         Token{Token::TokenType::TOKEN_NUMBER, 3.0},
+        Token{Token::TokenType::TOKEN_EOF},
     };
-    std::unique_ptr<ExprAST> expr = parse_number_expr(token_list);
+    auto lexer = MockLexer(std::cin);
+    ON_CALL(lexer, get()).WillByDefault([&token_list]() -> Token {
+        auto value = token_list.front();
+        token_list.pop_front();
+        return value;
+    });
+    ON_CALL(lexer, peek()).WillByDefault([&token_list]() -> Token {
+        return token_list.front();
+    });
+
+    std::unique_ptr<ExprAST> expr = parse_number_expr(lexer);
     NumberExprAST* ast(dynamic_cast<NumberExprAST*>(expr.get()));
     ASSERT_EQ(ast->value, 3.0);
 }
@@ -24,8 +47,19 @@ TEST(ParserTests, NumberExpressionsGetParsedAsPrimaryExpr)
     // 3
     std::deque<Token> token_list = {
         Token{Token::TokenType::TOKEN_NUMBER, 3.0},
+        Token{Token::TokenType::TOKEN_EOF},
     };
-    std::unique_ptr<ExprAST> expr = parse_primary(token_list);
+    auto lexer = MockLexer(std::cin);
+    ON_CALL(lexer, get()).WillByDefault([&token_list]() -> Token {
+        auto value = token_list.front();
+        token_list.pop_front();
+        return value;
+    });
+    ON_CALL(lexer, peek()).WillByDefault([&token_list]() -> Token {
+        return token_list.front();
+    });
+
+    std::unique_ptr<ExprAST> expr = parse_primary(lexer);
     NumberExprAST* ast(dynamic_cast<NumberExprAST*>(expr.get()));
     ASSERT_EQ(ast->value, 3.0);
 }
@@ -37,8 +71,19 @@ TEST(ParserTests, SimpleBinaryExpressionsGetParsed)
         Token{Token::TokenType::TOKEN_NUMBER, 3.0},
         Token{Token::TokenType::TOKEN_SPECIAL, '+'},
         Token{Token::TokenType::TOKEN_NUMBER, 2.0},
+        Token{Token::TokenType::TOKEN_EOF},
     };
-    std::unique_ptr<ExprAST> expr = parse_expr(token_list);
+    auto lexer = MockLexer(std::cin);
+    ON_CALL(lexer, get()).WillByDefault([&token_list]() -> Token {
+        auto value = token_list.front();
+        token_list.pop_front();
+        return value;
+    });
+    ON_CALL(lexer, peek()).WillByDefault([&token_list]() -> Token {
+        return token_list.front();
+    });
+
+    std::unique_ptr<ExprAST> expr = parse_expr(lexer);
     BinaryExprAST* ast = dynamic_cast<BinaryExprAST*>(expr.get());
     ASSERT_EQ(ast->opcode, '+');
     NumberExprAST* lhs = dynamic_cast<NumberExprAST*>(ast->lhs.get());
@@ -56,8 +101,19 @@ TEST(ParserTests, BinaryOperatorExpressionsGetParsedWithCorrectPrecedence1)
         Token{Token::TokenType::TOKEN_NUMBER, 2.0},
         Token{Token::TokenType::TOKEN_SPECIAL, '*'},
         Token{Token::TokenType::TOKEN_NUMBER, 5.0},
+        Token{Token::TokenType::TOKEN_EOF},
     };
-    std::unique_ptr<ExprAST> expr = parse_expr(token_list);
+    auto lexer = MockLexer(std::cin);
+    ON_CALL(lexer, get()).WillByDefault([&token_list]() -> Token {
+        auto value = token_list.front();
+        token_list.pop_front();
+        return value;
+    });
+    ON_CALL(lexer, peek()).WillByDefault([&token_list]() -> Token {
+        return token_list.front();
+    });
+
+    std::unique_ptr<ExprAST> expr = parse_expr(lexer);
     BinaryExprAST* ast = dynamic_cast<BinaryExprAST*>(expr.get());
     ASSERT_EQ(ast->opcode, '+');
     NumberExprAST* lhs = dynamic_cast<NumberExprAST*>(ast->lhs.get());
@@ -79,8 +135,19 @@ TEST(ParserTests, BinaryOperatorExpressionsGetParsedWithCorrectPrecedence2)
         Token{Token::TokenType::TOKEN_NUMBER, 2.0},
         Token{Token::TokenType::TOKEN_SPECIAL, '+'},
         Token{Token::TokenType::TOKEN_NUMBER, 5.0},
+        Token{Token::TokenType::TOKEN_EOF},
     };
-    std::unique_ptr<ExprAST> expr = parse_expr(token_list);
+    auto lexer = MockLexer(std::cin);
+    ON_CALL(lexer, get()).WillByDefault([&token_list]() -> Token {
+        auto value = token_list.front();
+        token_list.pop_front();
+        return value;
+    });
+    ON_CALL(lexer, peek()).WillByDefault([&token_list]() -> Token {
+        return token_list.front();
+    });
+
+    std::unique_ptr<ExprAST> expr = parse_expr(lexer);
     BinaryExprAST* ast = dynamic_cast<BinaryExprAST*>(expr.get());
     ASSERT_EQ(ast->opcode, '+');
     BinaryExprAST* lhs = dynamic_cast<BinaryExprAST*>(ast->lhs.get());
@@ -102,8 +169,19 @@ TEST(ParserTests, BracketedBinaryExpressionsGetParsed)
         Token{Token::TokenType::TOKEN_SPECIAL, '+'},
         Token{Token::TokenType::TOKEN_NUMBER, 2.0},
         Token{Token::TokenType::TOKEN_SPECIAL, ')'},
+        Token{Token::TokenType::TOKEN_EOF},
     };
-    std::unique_ptr<ExprAST> expr = parse_primary(token_list);
+    auto lexer = MockLexer(std::cin);
+    ON_CALL(lexer, get()).WillByDefault([&token_list]() -> Token {
+        auto value = token_list.front();
+        token_list.pop_front();
+        return value;
+    });
+    ON_CALL(lexer, peek()).WillByDefault([&token_list]() -> Token {
+        return token_list.front();
+    });
+
+    std::unique_ptr<ExprAST> expr = parse_primary(lexer);
     BinaryExprAST* ast = dynamic_cast<BinaryExprAST*>(expr.get());
     ASSERT_EQ(ast->opcode, '+');
     NumberExprAST* lhs = dynamic_cast<NumberExprAST*>(ast->lhs.get());
@@ -125,8 +203,19 @@ TEST(ParserTests, GeneratesTheCorrectParsedExpression)
         Token{Token::TokenType::TOKEN_SPECIAL, '*'},
         Token{Token::TokenType::TOKEN_NUMBER, 4.0},
         Token{Token::TokenType::TOKEN_SPECIAL, ')'},
+        Token{Token::TokenType::TOKEN_EOF},
     };
-    std::unique_ptr<ExprAST> expr = parse_expr(token_list);
+    auto lexer = MockLexer(std::cin);
+    ON_CALL(lexer, get()).WillByDefault([&token_list]() -> Token {
+        auto value = token_list.front();
+        token_list.pop_front();
+        return value;
+    });
+    ON_CALL(lexer, peek()).WillByDefault([&token_list]() -> Token {
+        return token_list.front();
+    });
+
+    std::unique_ptr<ExprAST> expr = parse_expr(lexer);
     BinaryExprAST* ast(dynamic_cast<BinaryExprAST*>(expr.get()));
     ASSERT_EQ(
         expr->to_string(),
@@ -142,8 +231,19 @@ TEST(ParserTests, ParsesFunctionPrototypeCorrectly)
         Token{Token::TokenType::TOKEN_IDENTIFIER, "x"},
         Token{Token::TokenType::TOKEN_IDENTIFIER, "y"},
         Token{Token::TokenType::TOKEN_SPECIAL, ')'},
+        Token{Token::TokenType::TOKEN_EOF},
     };
-    std::unique_ptr<FunctionPrototypeAST> fn = parse_function_proto(token_list);
+    auto lexer = MockLexer(std::cin);
+    ON_CALL(lexer, get()).WillByDefault([&token_list]() -> Token {
+        auto value = token_list.front();
+        token_list.pop_front();
+        return value;
+    });
+    ON_CALL(lexer, peek()).WillByDefault([&token_list]() -> Token {
+        return token_list.front();
+    });
+
+    std::unique_ptr<FunctionPrototypeAST> fn = parse_function_proto(lexer);
     FunctionPrototypeAST* ast(dynamic_cast<FunctionPrototypeAST*>(fn.get()));
     ASSERT_EQ(ast->to_string(), "def func(x, y)");
 }
@@ -153,8 +253,8 @@ TEST(ParserTests, TopLevelParsingParsesASimpleFileWithFunctionDefinitions)
     std::ifstream fin("../../test/sample_programs/test_simple.kld", std::ios::in);
     if (!fin.is_open())
         FAIL();
-    auto token_list = kccani::tokenize(fin);
-    auto ast_list = parse_program(token_list);
+    auto lexer = kccani::Lexer(fin);
+    auto ast_list = parse_program(lexer);
 
     ASSERT_EQ(ast_list.size(), 2);
 
@@ -172,7 +272,7 @@ TEST(ParserTests, TopLevelParsingParsesASimpleFileWithExternAndCall)
     std::ifstream fin("../../test/sample_programs/test_extern.kld", std::ios::in);
     if (!fin.is_open())
         FAIL();
-    auto token_list = kccani::tokenize(fin);
+    Lexer token_list = kccani::Lexer(fin);
     auto ast_list = parse_program(token_list);
 
     ASSERT_EQ(ast_list.size(), 2);

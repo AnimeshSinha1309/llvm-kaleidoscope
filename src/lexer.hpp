@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cctype>
-#include <deque>
 #include <iostream>
 #include <optional>
+#include <queue>
 #include <variant>
 #include <vector>
 
@@ -41,7 +41,20 @@ public:
     [[nodiscard]] bool operator ==(char other) const noexcept;
 };
 
-Token get_token(std::istream& fin);
-std::deque<Token> tokenize(std::istream& fin);
+
+class Lexer
+{
+    char stream_char = ' ';
+    std::istream& input_stream;
+    std::optional<Token> buffered_token;
+
+public:
+    virtual Token get();
+    virtual Token peek();
+
+    Lexer(std::basic_istream<char>& text_stream);
+    std::queue<Token> fetch_all();
+    Lexer operator>>(Token& output_token);
+};
 
 }

@@ -10,56 +10,54 @@ namespace kccani
 // Primary Expression Parsing
 
 std::unique_ptr<ExprAST> parse_number_expr(
-    std::deque<Token>& program
+    Lexer& program
 )
 {
-    Token number_token = program.front();
+    Token number_token = program.get();
     double number_value = std::get<double>(number_token.data.value());
     auto result = std::make_unique<NumberExprAST>(number_value);
-    program.pop_front();
     return std::move(result);
 }
 
 std::unique_ptr<ExprAST> parse_parenthesized_expr(
-    std::deque<Token>& program
+    Lexer& program
 )
 {
-    program.pop_front();
+    program.get();
     auto expression = parse_expr(program);
     if (!expression)
     {
         return nullptr;
     }
-    if (!(program.front() == ')'))
+    if (!(program.peek() == ')'))
     {
         spdlog::error("Expected `)` to close parenthesized expression");
         return nullptr;
     }
-    program.pop_front();
+    program.get();
     return expression;
 }
 
 std::unique_ptr<ExprAST> parse_identifier_expr(
-    std::deque<Token>& program
+    Lexer& program
 )
 {
     // Extract the identifier name
-    Token identifier = program.front();
+    Token identifier = program.get();
     if (identifier.type != Token::TokenType::TOKEN_IDENTIFIER)
         spdlog::error("Expected token should be an identifier, but is not");
     std::string identifier_name = std::get<std::string>(identifier.data.value());
-    program.pop_front();
     // If it's not a function call, process it as a variable name
-    if (!(program.front() == '('))
+    if (!(program.peek() == '('))
     {
         return std::make_unique<VariableExprAST>(identifier_name);
     }
     // If it is a function call and has no args, process it as such
-    program.pop_front();
+    program.get();
     std::vector<std::unique_ptr<ExprAST>> function_args;
-    if (program.front() == ')')
+    if (program.peek() == ')')
     {
-        program.pop_front();
+        program.get();
         return std::make_unique<FunctionCallExprAST>(
             identifier_name, std::move(function_args));
     }
@@ -72,34 +70,34 @@ std::unique_ptr<ExprAST> parse_identifier_expr(
         else
             return nullptr;
 
-        if (program.front() == ')')
+        if (program.peek() == ')')
         {
-            program.pop_front();
+            program.get();
             break;
         }
-        if (!(program.front() == ','))
+        if (!(program.peek() == ','))
         {
             spdlog::error("Expected ')' or ',' after end of expression in argument list");
             return nullptr;
         }
-        program.pop_front();
+        program.get();
     }
     return std::make_unique<FunctionCallExprAST>(identifier_name, std::move(args));
 }
 
 std::unique_ptr<ExprAST> parse_primary(
-    std::deque<Token>& program
+    Lexer& program
 )
 {
-    if (program.front().type == Token::TokenType::TOKEN_IDENTIFIER)
+    if (program.peek().type == Token::TokenType::TOKEN_IDENTIFIER)
     {
         return parse_identifier_expr(program);
     }
-    else if (program.front().type == Token::TokenType::TOKEN_NUMBER)
+    else if (program.peek().type == Token::TokenType::TOKEN_NUMBER)
     {
         return parse_number_expr(program);
     }
-    else if (program.front() == '(')
+    else if (program.peek() == '(')
     {
         return parse_parenthesized_expr(program);
     }
@@ -113,31 +111,31 @@ std::unique_ptr<ExprAST> parse_primary(
 // Binary expressions and assignments
 
 std::unique_ptr<ExprAST> parse_binary_op_rhs(
-    std::deque<Token>& program,
+    Lexer& program,
     int expression_precedence,
     std::unique_ptr<ExprAST> lhs
 )
 {
     const std::map<char, int> OP_PRECEDENCE = {{'<', 100}, {'+', 200}, {'-', 300}, {'*', 400}};
 
-    while (!program.empty() && program.front().type == Token::TokenType::TOKEN_SPECIAL) {
-        char opcode = std::get<char>(program.front().data.value());
+    while (program.peek().type == Token::TokenType::TOKEN_SPECIAL) {
+        char opcode = std::get<char>(program.peek().data.value());
         int token_precedence = OP_PRECEDENCE.count(opcode) != 0
             ? OP_PRECEDENCE.at(opcode)
             : std::numeric_limits<int>::min();
         if (token_precedence < expression_precedence)
             return std::move(lhs);
+        program.get();
 
-        program.pop_front();
         auto rhs = parse_primary(program);
         if (!rhs)
             return nullptr;
 
         // if opcode binds less tightly with RHS than the operator after RHS,
         // let the pending operator take RHS as its LHS.
-        if (!program.empty() && program.front().type == Token::TokenType::TOKEN_SPECIAL)
+        if (program.peek().type == Token::TokenType::TOKEN_SPECIAL)
         {
-            char next_opcode = std::get<char>(program.front().data.value());
+            char next_opcode = std::get<char>(program.peek().data.value());
             int next_precedence = OP_PRECEDENCE.count(next_opcode) != 0
                 ? OP_PRECEDENCE.at(next_opcode)
                 : std::numeric_limits<int>::min();
@@ -154,7 +152,7 @@ std::unique_ptr<ExprAST> parse_binary_op_rhs(
 }
 
 std::unique_ptr<ExprAST> parse_expr(
-    std::deque<Token>& program
+    Lexer& program
 ) {
     auto lhs = parse_primary(program);
     if (!lhs)
@@ -166,45 +164,41 @@ std::unique_ptr<ExprAST> parse_expr(
 // Parsing function blocks and top level (main code in script)
 
 std::unique_ptr<FunctionPrototypeAST> parse_function_proto(
-    std::deque<Token>& program
+    Lexer& program
 )
 {
-    if (program.front().type != Token::TokenType::TOKEN_IDENTIFIER)
+    if (program.peek().type != Token::TokenType::TOKEN_IDENTIFIER)
     {
         spdlog::error("Expected function name in prototype");
         return nullptr;
     }
-    std::string function_name = std::get<std::string>(program.front().data.value());
-    program.pop_front();
+    std::string function_name = std::get<std::string>(program.get().data.value());
 
-    if (!(program.front() == '('))
+    if (!(program.get() == '('))
     {
         spdlog::error("Expected '(' in prototype");
         return nullptr;
     }
-    program.pop_front();
 
     std::vector<std::string> arguments;
-    while (program.front().type == Token::TokenType::TOKEN_IDENTIFIER)
+    while (program.peek().type == Token::TokenType::TOKEN_IDENTIFIER)
     {
-       arguments.push_back(std::get<std::string>(program.front().data.value()));
-       program.pop_front();
+       arguments.push_back(std::get<std::string>(program.get().data.value()));
     }
-    if (!(program.front() == ')'))
+    if (!(program.get() == ')'))
     {
         spdlog::error("Expected ')' in prototype");
         return nullptr;
     }
-    program.pop_front();
 
     return std::make_unique<FunctionPrototypeAST>(function_name, std::move(arguments));
 }
 
 std::unique_ptr<FunctionAST> parse_function_definition(
-    std::deque<Token>& program
+    Lexer& program
 )
 {
-    program.pop_front();
+    program.get();
     auto prototype = parse_function_proto(program);
     if (!prototype)
         return nullptr;
@@ -215,7 +209,7 @@ std::unique_ptr<FunctionAST> parse_function_definition(
 }
 
 std::unique_ptr<FunctionAST> parse_top_level_expr(
-    std::deque<Token>& program
+    Lexer& program
 )
 {
     auto expr = parse_expr(program);
@@ -230,32 +224,32 @@ std::unique_ptr<FunctionAST> parse_top_level_expr(
 }
 
 std::unique_ptr<FunctionPrototypeAST> parse_extern(
-    std::deque<Token>& program
+    Lexer& program
 )
 {
-    program.pop_front();
+    program.get();
     return parse_function_proto(program);
 }
 
-std::vector<ParsedAstContentType> parse_program(std::deque<Token>& program) {
+std::vector<ParsedAstContentType> parse_program(Lexer& program) {
     std::vector<ParsedAstContentType> parsed_asts;
     while (true)
     {
-        if (program.front().type == Token::TokenType::TOKEN_EOF)
+        if (program.peek().type == Token::TokenType::TOKEN_EOF)
         {
             break;
         }
-        else if (program.front() == ';')
+        else if (program.peek() == ';')
         {
-            program.pop_front();
+            program.get();
         }
-        else if (program.front().type == Token::TokenType::TOKEN_DEF)
+        else if (program.peek().type == Token::TokenType::TOKEN_DEF)
         {
             ParsedAstContentType defn{parse_function_definition(program)};
             if (std::get<std::unique_ptr<FunctionAST>>(defn) != nullptr)
                 parsed_asts.emplace_back(std::move(defn));
         }
-        else if (program.front().type == Token::TokenType::TOKEN_EXTERN)
+        else if (program.peek().type == Token::TokenType::TOKEN_EXTERN)
         {
             ParsedAstContentType call{parse_extern(program)};
             if (std::get<std::unique_ptr<FunctionPrototypeAST>>(call) != nullptr)

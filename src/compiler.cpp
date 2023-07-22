@@ -39,8 +39,8 @@ int main(int argc, char* argv[])
             std::cout << "Compiling: " << file_name << std::endl;
             std::ifstream fin(file_name, std::fstream::in);
 
-            auto tokens = kccani::tokenize(fin);
-            auto asts = kccani::parse_program(tokens);
+            auto lexer = kccani::Lexer(fin);
+            auto asts = kccani::parse_program(lexer);
 
             kccani::CodeGeneratorLLVM codegen;
             for (auto &ast : asts)
@@ -59,8 +59,8 @@ int main(int argc, char* argv[])
             getline(std::cin, input_string);
             std::stringstream input_stream(input_string);
 
-            auto token_stream = kccani::tokenize(input_stream);
-            auto ast_stream = kccani::parse_program(token_stream);
+            auto lexer = kccani::Lexer(input_stream);
+            auto ast_stream = kccani::parse_program(lexer);
             for (auto &ast : ast_stream)
             {
                 auto result = std::visit(std::ref(codegen), std::move(ast));
