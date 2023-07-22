@@ -108,7 +108,11 @@ Token Lexer::get()
 
     char current_char = stream_char;
     if (input_stream >> stream_char)
+    {
+        if (current_char == '\n' || current_char == ' ')
+            return this->get();
         return {Token::TokenType::TOKEN_SPECIAL, current_char};
+    }
     else
         return Token::TokenType::TOKEN_EOF;
 }
@@ -136,8 +140,7 @@ std::queue<Token> Lexer::fetch_all()
     do
     {
         Token token = this->get();
-        if (!(token == '\n'))
-            all_tokens.push(token);
+        all_tokens.push(token);
     } while (
         all_tokens.empty() ||
         all_tokens.back().type != Token::TokenType::TOKEN_EOF);
