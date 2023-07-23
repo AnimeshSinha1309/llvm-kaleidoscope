@@ -52,26 +52,21 @@ int main(int argc, char* argv[])
     }
     else
     {
+        auto lexer = kccani::Lexer(std::cin);
+        auto parser = kccani::Parser(lexer);
         kccani::CodeGeneratorLLVM codegen;
         while (true)
         {
             std::cout << "kccani> ";
-            std::string input_string;
-            getline(std::cin, input_string);
-            std::stringstream input_stream(input_string);
+            auto ast = parser.get();
 
-            auto lexer = kccani::Lexer(input_stream);
-            auto parser = kccani::Parser(lexer);
-            auto ast_stream = parser.fetch_all();
-            for (auto &ast : ast_stream)
-            {
-                auto result = std::visit(std::ref(codegen), std::move(ast));
-                if (std::holds_alternative<llvm::Function*>(result))
-                    std::cout << std::get<llvm::Function*>(result) << std::endl;
-                else if (std::holds_alternative<llvm::Value*>(result))
-                    std::cout << std::get<llvm::Value*>(result) << std::endl;
-            }
-            codegen.print();
+            auto result = std::visit(std::ref(codegen), std::move(ast));
+            if (std::holds_alternative<llvm::Function*>(result))
+                std::cout << std::get<llvm::Function*>(result) << std::endl;
+            else if (std::holds_alternative<llvm::Value*>(result))
+                std::cout << std::get<llvm::Value*>(result) << std::endl;
+            else
+                std::cout << "Error in Code Generation" << std::endl;
         }
     }
 }
