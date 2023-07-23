@@ -116,6 +116,7 @@ public:
 using ParsedAstContentType = std::variant<
     std::unique_ptr<FunctionAST>,
     std::unique_ptr<FunctionPrototypeAST>,
-    std::unique_ptr<ExprAST>>;
+    std::unique_ptr<ExprAST>,
+    std::monostate>;
 
 }

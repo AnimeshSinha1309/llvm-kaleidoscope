@@ -54,21 +54,27 @@ Token::operator bool()
     return std::get<char>(this->data.value()) == other;
 }
 
-char stream_char = ' ';
 
-Token get_token(std::istream& fin)
+Token Lexer::get()
 {
-    fin >> std::noskipws;
+    if (this->buffered_token)
+    {
+        auto output_value = this->buffered_token.value();
+        this->buffered_token.reset();
+        return output_value;
+    }
+
+    this->input_stream >> std::noskipws;
 
     while (stream_char == ' ')
-        fin >> stream_char;
+        input_stream >> stream_char;
 
     if (isalpha(stream_char))
     {
         std::string token = "";
         do {
             token += stream_char;
-            fin >> stream_char;
+            input_stream >> stream_char;
         } while (isalnum(stream_char));
 
         if (token == "def")
@@ -83,7 +89,7 @@ Token get_token(std::istream& fin)
         std::string token = "";
         do {
             token += stream_char;
-            fin >> stream_char;
+            input_stream >> stream_char;
         } while (isdigit(stream_char) || stream_char == '.');
 
         std::size_t __string_size_v;
@@ -93,28 +99,48 @@ Token get_token(std::istream& fin)
 
     if (stream_char == '#') {
         do {
-            fin >> stream_char;
+            input_stream >> stream_char;
         } while (stream_char != EOF && stream_char != '\n' && stream_char != '\r');
 
         if (stream_char != EOF)
-            return get_token(fin);
+            return get();
     }
 
     char current_char = stream_char;
-    if (fin >> stream_char)
+    if (input_stream >> stream_char)
+    {
+        if (current_char == '\n' || current_char == ' ')
+            return this->get();
         return {Token::TokenType::TOKEN_SPECIAL, current_char};
+    }
     else
         return Token::TokenType::TOKEN_EOF;
 }
 
-std::deque<Token> tokenize(std::istream& fin)
+Token Lexer::peek()
 {
-    std::deque<Token> all_tokens;
+    if (!this->buffered_token)
+        this->buffered_token = this->get();
+    return this->buffered_token.value();
+}
+
+Lexer::Lexer(std::basic_istream<char>& text_stream) : input_stream(text_stream)
+{
+}
+
+Lexer Lexer::operator>>(Token& output_token)
+{
+    output_token = this->get();
+    return *this;
+}
+
+std::queue<Token> Lexer::fetch_all()
+{
+    std::queue<Token> all_tokens;
     do
     {
-        Token token = get_token(fin);
-        if (!(token == '\n'))
-            all_tokens.push_back(token);
+        Token token = this->get();
+        all_tokens.push(token);
     } while (
         all_tokens.empty() ||
         all_tokens.back().type != Token::TokenType::TOKEN_EOF);

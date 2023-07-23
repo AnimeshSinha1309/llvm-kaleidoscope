@@ -39,8 +39,9 @@ int main(int argc, char* argv[])
             std::cout << "Compiling: " << file_name << std::endl;
             std::ifstream fin(file_name, std::fstream::in);
 
-            auto tokens = kccani::tokenize(fin);
-            auto asts = kccani::parse_program(tokens);
+            auto lexer = kccani::Lexer(fin);
+            auto parser = kccani::Parser(lexer);
+            auto asts = parser.fetch_all();
 
             kccani::CodeGeneratorLLVM codegen;
             for (auto &ast : asts)
@@ -51,25 +52,21 @@ int main(int argc, char* argv[])
     }
     else
     {
+        auto lexer = kccani::Lexer(std::cin);
+        auto parser = kccani::Parser(lexer);
         kccani::CodeGeneratorLLVM codegen;
         while (true)
         {
             std::cout << "kccani> ";
-            std::string input_string;
-            getline(std::cin, input_string);
-            std::stringstream input_stream(input_string);
+            auto ast = parser.get();
 
-            auto token_stream = kccani::tokenize(input_stream);
-            auto ast_stream = kccani::parse_program(token_stream);
-            for (auto &ast : ast_stream)
-            {
-                auto result = std::visit(std::ref(codegen), std::move(ast));
-                if (std::holds_alternative<llvm::Function*>(result))
-                    std::cout << std::get<llvm::Function*>(result) << std::endl;
-                else if (std::holds_alternative<llvm::Value*>(result))
-                    std::cout << std::get<llvm::Value*>(result) << std::endl;
-            }
-            codegen.print();
+            auto result = std::visit(std::ref(codegen), std::move(ast));
+            if (std::holds_alternative<llvm::Function*>(result))
+                std::cout << std::get<llvm::Function*>(result) << std::endl;
+            else if (std::holds_alternative<llvm::Value*>(result))
+                std::cout << std::get<llvm::Value*>(result) << std::endl;
+            else
+                std::cout << "Error in Code Generation" << std::endl;
         }
     }
 }

@@ -1,5 +1,6 @@
 #include <deque>
 #include <memory>
+#include <gtest/gtest.h>
 
 #include "ast.hpp"
 #include "lexer.hpp"
@@ -7,43 +8,39 @@
 namespace kccani
 {
 
-std::unique_ptr<ExprAST> parse_number_expr(
-    std::deque<Token>& program
-);
-std::unique_ptr<ExprAST> parse_parenthesized_expr(
-    std::deque<Token>& program
-);
-std::unique_ptr<ExprAST> parse_identifier_expr(
-    std::deque<Token>& program
-);
-std::unique_ptr<ExprAST> parse_primary(
-    std::deque<Token>& program
-);
+class Parser
+{
+private:
 
-std::unique_ptr<ExprAST> parse_binary_op_rhs(
-    std::deque<Token>& program,
-    int expression_precedence,
-    std::unique_ptr<ExprAST> lhs
-);
-std::unique_ptr<ExprAST> parse_expr(
-    std::deque<Token>& program
-);
+    FRIEND_TEST(ParserTests, NumberExpressionsGetParsedAsNumberExpr);
+    FRIEND_TEST(ParserTests, NumberExpressionsGetParsedAsPrimaryExpr);
+    FRIEND_TEST(ParserTests, SimpleBinaryExpressionsGetParsed);
+    FRIEND_TEST(ParserTests, BinaryOperatorExpressionsGetParsedWithCorrectPrecedence1);
+    FRIEND_TEST(ParserTests, BinaryOperatorExpressionsGetParsedWithCorrectPrecedence2);
+    FRIEND_TEST(ParserTests, BracketedBinaryExpressionsGetParsed);
+    FRIEND_TEST(ParserTests, GeneratesTheCorrectParsedExpression);
+    FRIEND_TEST(ParserTests, ParsesFunctionPrototypeCorrectly);
 
-std::unique_ptr<FunctionPrototypeAST> parse_function_proto(
-    std::deque<Token>& program
-);
-std::unique_ptr<FunctionAST> parse_function_definition(
-    std::deque<Token>& program
-);
-std::unique_ptr<FunctionAST> parse_top_level_expr(
-    std::deque<Token>& program
-);
-std::unique_ptr<FunctionPrototypeAST> parse_extern(
-    std::deque<Token>& program
-);
+    Lexer& program;
 
-std::vector<ParsedAstContentType> parse_program(
-    std::deque<Token>& program
-);
+    std::unique_ptr<ExprAST> parse_number_expr();
+    std::unique_ptr<ExprAST> parse_parenthesized_expr();
+    std::unique_ptr<ExprAST> parse_identifier_expr();
+    std::unique_ptr<ExprAST> parse_primary();
+    std::unique_ptr<ExprAST> parse_binary_op_rhs(int, std::unique_ptr<ExprAST>);
+    std::unique_ptr<ExprAST> parse_expr();
+
+    std::unique_ptr<FunctionPrototypeAST> parse_function_proto();
+    std::unique_ptr<FunctionAST> parse_function_definition();
+    std::unique_ptr<FunctionAST> parse_top_level_expr();
+    std::unique_ptr<FunctionPrototypeAST> parse_extern();
+
+public:
+    Parser(Lexer& lexer);
+    virtual ParsedAstContentType get();
+    std::vector<ParsedAstContentType> fetch_all();
+
+    Parser operator>>(ParsedAstContentType& ast);
+};
 
 }

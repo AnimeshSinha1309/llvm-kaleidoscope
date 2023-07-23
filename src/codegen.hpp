@@ -13,6 +13,11 @@
 namespace kccani
 {
 
+using CodegenContentType = std::variant<
+    llvm::Value*,
+    llvm::Function*,
+    std::monostate>;
+
 class CodeGeneratorLLVM
 {
     std::unique_ptr<llvm::LLVMContext> context{std::make_unique<llvm::LLVMContext>()};
@@ -21,9 +26,10 @@ class CodeGeneratorLLVM
     std::map<std::string, llvm::Value*> named_values;
 
 public:
-    std::variant<llvm::Value*, llvm::Function*> operator()(std::unique_ptr<ExprAST>&& ast);
-    std::variant<llvm::Value*, llvm::Function*> operator()(std::unique_ptr<FunctionAST>&& ast);
-    std::variant<llvm::Value*, llvm::Function*> operator()(std::unique_ptr<FunctionPrototypeAST>&& ast);
+    CodegenContentType operator()(std::unique_ptr<ExprAST>&& ast);
+    CodegenContentType operator()(std::unique_ptr<FunctionAST>&& ast);
+    CodegenContentType operator()(std::unique_ptr<FunctionPrototypeAST>&& ast);
+    CodegenContentType operator()(std::monostate&& ast);
 
     void print() const;
 };

@@ -6,7 +6,7 @@ namespace kccani
 
 {
 
-std::variant<llvm::Value*, llvm::Function*> CodeGeneratorLLVM::operator()(std::unique_ptr<ExprAST>&& ast)
+CodegenContentType CodeGeneratorLLVM::operator()(std::unique_ptr<ExprAST>&& ast)
 {
     switch (ast->get_type())
     {
@@ -80,7 +80,7 @@ std::variant<llvm::Value*, llvm::Function*> CodeGeneratorLLVM::operator()(std::u
     }
 }
 
-std::variant<llvm::Value*, llvm::Function*> CodeGeneratorLLVM::operator()(std::unique_ptr<FunctionAST>&& ast)
+CodegenContentType CodeGeneratorLLVM::operator()(std::unique_ptr<FunctionAST>&& ast)
 {
     // First, check for an existing function from a previous 'extern' declaration.
     llvm::Function *the_function = this->module->getFunction(ast->prototype->name);
@@ -110,7 +110,7 @@ std::variant<llvm::Value*, llvm::Function*> CodeGeneratorLLVM::operator()(std::u
     return (llvm::Function*) nullptr;
 }
 
-std::variant<llvm::Value*, llvm::Function*> CodeGeneratorLLVM::operator()(std::unique_ptr<FunctionPrototypeAST>&& ast)
+CodegenContentType CodeGeneratorLLVM::operator()(std::unique_ptr<FunctionPrototypeAST>&& ast)
 {
     std::vector<llvm::Type*> doubles(ast->args.size(), llvm::Type::getDoubleTy(*this->context));
     llvm::FunctionType *function_type = llvm::FunctionType::get(
@@ -123,6 +123,11 @@ std::variant<llvm::Value*, llvm::Function*> CodeGeneratorLLVM::operator()(std::u
         arg.setName(ast->args[idx++]);
 
     return function;
+}
+
+CodegenContentType CodeGeneratorLLVM::operator()(std::monostate&& invalid)
+{
+    return std::monostate{};
 }
 
 void CodeGeneratorLLVM::print() const
