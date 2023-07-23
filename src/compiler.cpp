@@ -40,7 +40,8 @@ int main(int argc, char* argv[])
             std::ifstream fin(file_name, std::fstream::in);
 
             auto lexer = kccani::Lexer(fin);
-            auto asts = kccani::parse_program(lexer);
+            auto parser = kccani::Parser(lexer);
+            auto asts = parser.fetch_all();
 
             kccani::CodeGeneratorLLVM codegen;
             for (auto &ast : asts)
@@ -60,7 +61,8 @@ int main(int argc, char* argv[])
             std::stringstream input_stream(input_string);
 
             auto lexer = kccani::Lexer(input_stream);
-            auto ast_stream = kccani::parse_program(lexer);
+            auto parser = kccani::Parser(lexer);
+            auto ast_stream = parser.fetch_all();
             for (auto &ast : ast_stream)
             {
                 auto result = std::visit(std::ref(codegen), std::move(ast));

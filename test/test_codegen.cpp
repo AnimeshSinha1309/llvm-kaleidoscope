@@ -14,7 +14,8 @@ TEST(CodegenTests, LlvmIrIsGeneratedFromASimpleFunctionDefnAndCall)
     if (!fin.is_open())
         FAIL();
     kccani::Lexer lexer(fin);
-    auto ast_list = parse_program(lexer);
+    auto parser = kccani::Parser(lexer);
+    auto ast_list = parser.fetch_all();
     CodeGeneratorLLVM codegen;
 
     for (const auto &ast : ast_list)
