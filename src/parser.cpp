@@ -243,8 +243,7 @@ ParsedAstContentType Parser::get() {
                 return std::move(expr);
         }
     }
-    // EOF or error token
-    return ParsedAstContentType{std::unique_ptr<FunctionAST>{nullptr}};
+    return std::monostate{};  // EOF or error token
 }
 
 std::vector<ParsedAstContentType> Parser::fetch_all()
