@@ -61,12 +61,8 @@ int main(int argc, char* argv[])
             auto ast = parser.get();
 
             auto result = std::visit(std::ref(codegen), std::move(ast));
-            if (std::holds_alternative<llvm::Function*>(result))
-                std::cout << std::get<llvm::Function*>(result) << std::endl;
-            else if (std::holds_alternative<llvm::Value*>(result))
-                std::cout << std::get<llvm::Value*>(result) << std::endl;
-            else
-                std::cout << "Error in Code Generation" << std::endl;
+            kccani::CodeGeneratorLLVM::print(result);
+            std::cout << std::endl;
         }
     }
 }

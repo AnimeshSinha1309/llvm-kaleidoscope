@@ -135,4 +135,14 @@ void CodeGeneratorLLVM::print() const
     this->module->print(llvm::errs(), nullptr);
 }
 
+void CodeGeneratorLLVM::print(CodegenContentType generated_code)
+{
+    if (std::holds_alternative<llvm::Function*>(generated_code))
+        std::get<llvm::Function*>(generated_code)->print(llvm::errs());
+    else if (std::holds_alternative<llvm::Value*>(generated_code))
+        std::get<llvm::Value*>(generated_code)->print(llvm::errs());
+    else if (std::holds_alternative<std::monostate>(generated_code))
+        std::cout << "Error in Code Generation" << std::endl;
+}
+
 }
