@@ -32,6 +32,9 @@ public:
     CodegenContentType operator()(std::monostate&& ast);
 
     void print() const;
+    std::string to_string() const;
+    static void print(CodegenContentType generated_code);
+    static std::string to_string(CodegenContentType generated_code);
 };
 
 }
