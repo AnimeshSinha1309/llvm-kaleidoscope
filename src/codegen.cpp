@@ -3,7 +3,6 @@
 #include <spdlog/spdlog.h>
 
 namespace kccani
-
 {
 
 CodegenContentType CodeGeneratorLLVM::operator()(std::unique_ptr<ExprAST>&& ast)
@@ -13,7 +12,7 @@ CodegenContentType CodeGeneratorLLVM::operator()(std::unique_ptr<ExprAST>&& ast)
     case ExprAST::ExpressionType::NUMBER_EXPR:
     {
         auto expr = std::unique_ptr<NumberExprAST>(static_cast<NumberExprAST*>(ast.release()));
-        return llvm::ConstantFP::get(*this->context, llvm::APFloat(3.0));
+        return llvm::ConstantFP::get(*this->context, llvm::APFloat(expr->value));
     }
     case ExprAST::ExpressionType::VARIABLE_EXPR:
     {
@@ -135,14 +134,31 @@ void CodeGeneratorLLVM::print() const
     this->module->print(llvm::errs(), nullptr);
 }
 
+std::string CodeGeneratorLLVM::to_string() const
+{
+    std::string llvm_output;
+    llvm::raw_string_ostream rso(llvm_output);
+    this->module->print(rso, nullptr);
+    return llvm_output;
+}
+
 void CodeGeneratorLLVM::print(CodegenContentType generated_code)
 {
     if (std::holds_alternative<llvm::Function*>(generated_code))
         std::get<llvm::Function*>(generated_code)->print(llvm::errs());
     else if (std::holds_alternative<llvm::Value*>(generated_code))
         std::get<llvm::Value*>(generated_code)->print(llvm::errs());
-    else if (std::holds_alternative<std::monostate>(generated_code))
-        std::cout << "Error in Code Generation" << std::endl;
+}
+
+std::string CodeGeneratorLLVM::to_string(CodegenContentType generated_code)
+{
+    std::string llvm_output;
+    llvm::raw_string_ostream rso(llvm_output);
+    if (std::holds_alternative<llvm::Function*>(generated_code))
+        std::get<llvm::Function*>(generated_code)->print(rso);
+    else if (std::holds_alternative<llvm::Value*>(generated_code))
+        std::get<llvm::Value*>(generated_code)->print(rso);
+    return llvm_output;
 }
 
 }
