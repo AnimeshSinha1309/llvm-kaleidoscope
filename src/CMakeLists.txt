@@ -6,4 +6,4 @@ target_link_libraries(compiler_lib Boost::program_options spdlog::spdlog gtest
 
 add_executable(compiler compiler.cpp)
 target_link_libraries(compiler compiler_lib Boost::program_options
-                      spdlog::spdlog)
+                      spdlog::spdlog termcolor)

@@ -20,3 +20,4 @@ add_subdirectory(test)
 
 add_subdirectory(deps/spdlog)
 add_subdirectory(deps/gtest)
+add_subdirectory(deps/termcolor)

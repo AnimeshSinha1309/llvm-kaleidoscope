@@ -4,6 +4,7 @@
 #include <variant>
 
 #include <boost/program_options.hpp>
+#include <termcolor/termcolor.hpp>
 
 #include "lexer.hpp"
 #include "ast.hpp"
@@ -57,7 +58,7 @@ int main(int argc, char* argv[])
         kccani::CodeGeneratorLLVM codegen;
         while (true)
         {
-            std::cout << "kccani> ";
+            std::cout << termcolor::red << "kccani> " << termcolor::reset;
             auto ast = parser.get();
 
             auto result = std::visit(std::ref(codegen), std::move(ast));
