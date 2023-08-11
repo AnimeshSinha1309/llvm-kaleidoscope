@@ -1,2 +1,5 @@
 # C++ Build files
-build/
+cmake-build-debug/
+
+# Editor files
+.idea/

@@ -1,20 +1,17 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
             "name": "Run compiler",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/src/compiler",
+            "program": "${workspaceFolder}/cmake-build-debug/src/compiler",
             "args": ["--file", "../../test/sample_programs/test_simple.kld"],
             "stopAtEntry": false,
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "cwd": "${workspaceFolder}/build/src",
+            "cwd": "${workspaceFolder}/cmake-build-debug/src",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -32,13 +29,13 @@
             "name": "Run interpreter",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/src/compiler",
+            "program": "${workspaceFolder}/cmake-build-debug/src/compiler",
             "args": [],
             "stopAtEntry": false,
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "cwd": "${workspaceFolder}/build/src",
+            "cwd": "${workspaceFolder}/cmake-build-debug/src",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
