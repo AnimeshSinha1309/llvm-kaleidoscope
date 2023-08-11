@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
             auto ast = parser.get();
 
             auto result = std::visit(std::ref(codegen), std::move(ast));
-            kccani::CodeGeneratorLLVM::print(result);
+            kccani::CodeGeneratorLLVM::print(std::move(result));
             std::cout << std::endl;
         }
     }

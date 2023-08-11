@@ -5,7 +5,7 @@
 namespace kccani
 {
 
-CodegenContentType CodeGeneratorLLVM::operator()(std::unique_ptr<ExprAST>&& ast)
+llvm::Value* CodeGeneratorLLVM::codegen_expr(std::unique_ptr<ExprAST>&& ast)
 {
     switch (ast->get_type())
     {
@@ -25,8 +25,8 @@ CodegenContentType CodeGeneratorLLVM::operator()(std::unique_ptr<ExprAST>&& ast)
     case ExprAST::ExpressionType::BINARY_EXPR:
     {
         auto expr = std::unique_ptr<BinaryExprAST>(static_cast<BinaryExprAST*>(ast.release()));
-        llvm::Value* l = std::get<llvm::Value*>((*this)(std::move(expr->lhs)));
-        llvm::Value* r = std::get<llvm::Value*>((*this)(std::move(expr->rhs)));
+        llvm::Value* l = this->codegen_expr(std::move(expr->lhs));
+        llvm::Value* r = this->codegen_expr(std::move(expr->rhs));
         if (!l || !r)
             return (llvm::Value*) nullptr;
         switch (expr->opcode)
@@ -56,37 +56,44 @@ CodegenContentType CodeGeneratorLLVM::operator()(std::unique_ptr<ExprAST>&& ast)
         if (!callee_func)
         {
             spdlog::error("Undefined function with name: " + expr->callee);
-            return (llvm::Value*) nullptr;
+            return nullptr;
         }
 
         if (callee_func->arg_size() != expr->args.size())
         {
             spdlog::error("Incorrect number of arguments passed");
-            return (llvm::Value*) nullptr;
+            return nullptr;
         }
         std::vector<llvm::Value*> args_llvm_values;
         for (unsigned i = 0, e = expr->args.size(); i != e; ++i) {
-            args_llvm_values.push_back(std::get<llvm::Value*>((*this)(std::move(expr->args[i]))));
+            args_llvm_values.push_back(this->codegen_expr(std::move(expr->args[i])));
             if (!args_llvm_values.back())
-                return (llvm::Value*) nullptr;
+                return nullptr;
         }
 
         return this->builder->CreateCall(callee_func, args_llvm_values, "calltmp");
     }
     default:
         spdlog::error("Invalid expression type, all expression types should be in switch above");
-        return (llvm::Value*) nullptr;
+        return nullptr;
     }
 }
 
-CodegenContentType CodeGeneratorLLVM::operator()(std::unique_ptr<FunctionAST>&& ast)
+llvm::Function* CodeGeneratorLLVM::operator()(std::unique_ptr<ExprAST>&& ast)
+{
+    auto fn_proto = std::make_unique<FunctionPrototypeAST>("__anon_expr", std::vector<std::string>());
+    auto fn_ast = std::make_unique<FunctionAST>(std::move(fn_proto), std::move(ast));
+    return (*this)(std::move(fn_ast));
+}
+
+llvm::Function* CodeGeneratorLLVM::operator()(std::unique_ptr<FunctionAST>&& ast)
 {
     // First, check for an existing function from a previous 'extern' declaration.
-    llvm::Function *the_function = this->module->getFunction(ast->prototype->name);
+    llvm::Function* the_function = this->module->getFunction(ast->prototype->name);
     if (!the_function)
-        the_function = std::get<llvm::Function*>((*this)(std::move(ast->prototype)));
+        the_function = (*this)(std::move(ast->prototype));
     if (!the_function)
-        return (llvm::Function*) nullptr;
+        return nullptr;
 
     // Create a new basic block to start insertion into.
     llvm::BasicBlock *basic_block = llvm::BasicBlock::Create(*this->context, "entry", the_function);
@@ -97,7 +104,7 @@ CodegenContentType CodeGeneratorLLVM::operator()(std::unique_ptr<FunctionAST>&& 
     for (auto &arg : the_function->args())
     this->named_values[std::string(arg.getName())] = &arg;
 
-    if (llvm::Value *return_value = std::get<llvm::Value*>((*this)(std::move(ast->body)))) {
+    if (llvm::Value *return_value = this->codegen_expr(std::move(ast->body))) {
         // Finish off the function.
         this->builder->CreateRet(return_value);
         // Validate the generated code, checking for consistency.
@@ -106,10 +113,10 @@ CodegenContentType CodeGeneratorLLVM::operator()(std::unique_ptr<FunctionAST>&& 
     }
     // Error reading body, remove function.
     the_function->eraseFromParent();
-    return (llvm::Function*) nullptr;
+    return nullptr;
 }
 
-CodegenContentType CodeGeneratorLLVM::operator()(std::unique_ptr<FunctionPrototypeAST>&& ast)
+llvm::Function* CodeGeneratorLLVM::operator()(std::unique_ptr<FunctionPrototypeAST>&& ast)
 {
     std::vector<llvm::Type*> doubles(ast->args.size(), llvm::Type::getDoubleTy(*this->context));
     llvm::FunctionType *function_type = llvm::FunctionType::get(
@@ -124,9 +131,9 @@ CodegenContentType CodeGeneratorLLVM::operator()(std::unique_ptr<FunctionPrototy
     return function;
 }
 
-CodegenContentType CodeGeneratorLLVM::operator()(std::monostate&& invalid)
+llvm::Function* CodeGeneratorLLVM::operator()(std::monostate&& invalid)
 {
-    return std::monostate{};
+    return nullptr;
 }
 
 void CodeGeneratorLLVM::print() const
@@ -142,22 +149,16 @@ std::string CodeGeneratorLLVM::to_string() const
     return llvm_output;
 }
 
-void CodeGeneratorLLVM::print(CodegenContentType generated_code)
+void CodeGeneratorLLVM::print(llvm::Function* generated_code)
 {
-    if (std::holds_alternative<llvm::Function*>(generated_code))
-        std::get<llvm::Function*>(generated_code)->print(llvm::errs());
-    else if (std::holds_alternative<llvm::Value*>(generated_code))
-        std::get<llvm::Value*>(generated_code)->print(llvm::errs());
+    generated_code->print(llvm::errs());
 }
 
-std::string CodeGeneratorLLVM::to_string(CodegenContentType generated_code)
+std::string CodeGeneratorLLVM::to_string(llvm::Function* generated_code)
 {
     std::string llvm_output;
     llvm::raw_string_ostream rso(llvm_output);
-    if (std::holds_alternative<llvm::Function*>(generated_code))
-        std::get<llvm::Function*>(generated_code)->print(rso);
-    else if (std::holds_alternative<llvm::Value*>(generated_code))
-        std::get<llvm::Value*>(generated_code)->print(rso);
+    generated_code->print(rso);
     return llvm_output;
 }
 
