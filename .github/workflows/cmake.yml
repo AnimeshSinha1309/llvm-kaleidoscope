@@ -23,8 +23,15 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Install LLVM
+      run: |
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh 18
+        sudo apt-get remove -y llvm-12 lldb-12 llvm-12-dev libllvm12 llvm-12-runtime
+        sudo apt-get remove -y llvm-13 lldb-13 llvm-13-dev libllvm13 llvm-13-runtime
+
     - name: Install Boost
-      # Build your program with the given configuration
       run: sudo apt-get install -y libboost-all-dev
 
     - name: Configure CMake
