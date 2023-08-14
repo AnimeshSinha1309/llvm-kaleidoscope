@@ -22,17 +22,18 @@ protected:
     std::map<std::string, llvm::Value*> named_values;
 
     // Evaluating the bodies of functions down to a value
-    llvm::Value* codegen_expr(std::unique_ptr<ExprAST>&& ast);
+    virtual llvm::Value* codegen_expr(std::unique_ptr<ExprAST>&& ast);
+    virtual llvm::Function* get_function(const std::string& name);
 
 public:
     // Handing top-level expressions
-    llvm::Function* operator()(std::unique_ptr<ExprAST>&& ast);
+    virtual llvm::Function* operator()(std::unique_ptr<ExprAST>&& ast);
     // Handling function definitions
-    llvm::Function* operator()(std::unique_ptr<FunctionAST>&& ast);
+    virtual llvm::Function* operator()(std::unique_ptr<FunctionAST>&& ast);
     // Handling external linkage
-    llvm::Function* operator()(std::unique_ptr<FunctionPrototypeAST>&& ast);
+    virtual llvm::Function* operator()(std::unique_ptr<FunctionPrototypeAST>&& ast);
     // Handling statements with parsing errors in them
-    llvm::Function* operator()(std::monostate&& ast);
+    virtual llvm::Function* operator()(std::monostate&& ast);
 
     void print() const;
     std::string to_string() const;

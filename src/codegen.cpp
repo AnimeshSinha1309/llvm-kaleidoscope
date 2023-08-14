@@ -52,7 +52,7 @@ llvm::Value* CodeGeneratorLLVM::codegen_expr(std::unique_ptr<ExprAST>&& ast)
     {
         auto expr = std::unique_ptr<FunctionCallExprAST>(static_cast<FunctionCallExprAST*>(ast.release()));
 
-        llvm::Function *callee_func = this->module->getFunction(expr->callee);
+        llvm::Function *callee_func = this->get_function(expr->callee);
         if (!callee_func)
         {
             spdlog::error("Undefined function with name: " + expr->callee);
@@ -79,17 +79,25 @@ llvm::Value* CodeGeneratorLLVM::codegen_expr(std::unique_ptr<ExprAST>&& ast)
     }
 }
 
+llvm::Function* CodeGeneratorLLVM::get_function(const std::string& name)
+{
+    return this->module->getFunction(name);
+}
+
+
 llvm::Function* CodeGeneratorLLVM::operator()(std::unique_ptr<ExprAST>&& ast)
 {
     auto fn_proto = std::make_unique<FunctionPrototypeAST>("__anon_expr", std::vector<std::string>());
     auto fn_ast = std::make_unique<FunctionAST>(std::move(fn_proto), std::move(ast));
-    return (*this)(std::move(fn_ast));
+    auto fn_llvm_ir = (*this)(std::move(fn_ast));
+    fn_llvm_ir->eraseFromParent();
+    return fn_llvm_ir;
 }
 
 llvm::Function* CodeGeneratorLLVM::operator()(std::unique_ptr<FunctionAST>&& ast)
 {
     // First, check for an existing function from a previous 'extern' declaration.
-    llvm::Function* the_function = this->module->getFunction(ast->prototype->name);
+    llvm::Function* the_function = this->get_function(ast->prototype->name);
     if (!the_function)
         the_function = (*this)(std::move(ast->prototype));
     if (!the_function)
