@@ -9,7 +9,7 @@
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "linux-clang-x64",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+            "compileCommands": "${workspaceFolder}/cmake-build-debug/compile_commands.json",
             "compilerPath": "/usr/bin/g++",
             "configurationProvider": "ms-vscode.cmake-tools"
         }

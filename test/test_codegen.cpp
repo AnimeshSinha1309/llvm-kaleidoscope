@@ -21,7 +21,7 @@ TEST(CodegenTests, CorrectLlvmIrGeneratedForASimpleFunctionDefn)
 
     auto ast_list = parser.fetch_all();
     auto llvm = std::visit(std::ref(codegen), std::move(ast_list[0]));
-    std::string actual_codegen = kccani::CodeGeneratorLLVM::to_string(llvm);
+    std::string actual_codegen = kccani::CodeGeneratorLLVM::to_string(std::move(llvm));
 
     const std::string expected_codegen =
         "define double @test(double \%x) {\n"

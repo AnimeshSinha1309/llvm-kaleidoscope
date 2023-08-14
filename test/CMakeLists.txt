@@ -1,6 +1,6 @@
 enable_testing()
 
-add_executable(compiler_tests main.cpp test_lexer.cpp test_parser.cpp test_codegen.cpp)
+add_executable(compiler_tests main.cpp test_lexer.cpp test_parser.cpp test_codegen.cpp test_evaluator.cpp)
 target_link_libraries(compiler_tests compiler_lib gtest gmock)
 add_test(
     NAME compiler_tests

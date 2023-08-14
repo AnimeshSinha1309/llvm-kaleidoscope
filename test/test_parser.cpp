@@ -27,7 +27,7 @@ TEST(ParserTests, NumberExpressionsGetParsedAsNumberExpr)
         Token{Token::TokenType::TOKEN_NUMBER, 3.0},
         Token{Token::TokenType::TOKEN_EOF},
     };
-    auto lexer = MockLexer(std::cin);
+    auto lexer = ::testing::NiceMock<MockLexer>(std::cin);
     ON_CALL(lexer, get()).WillByDefault([&token_list]() -> Token {
         auto value = token_list.front();
         token_list.pop_front();
@@ -51,7 +51,7 @@ TEST(ParserTests, NumberExpressionsGetParsedAsPrimaryExpr)
         Token{Token::TokenType::TOKEN_NUMBER, 3.0},
         Token{Token::TokenType::TOKEN_EOF},
     };
-    auto lexer = MockLexer(std::cin);
+    auto lexer = ::testing::NiceMock<MockLexer>(std::cin);
     ON_CALL(lexer, get()).WillByDefault([&token_list]() -> Token {
         auto value = token_list.front();
         token_list.pop_front();
@@ -77,7 +77,7 @@ TEST(ParserTests, SimpleBinaryExpressionsGetParsed)
         Token{Token::TokenType::TOKEN_NUMBER, 2.0},
         Token{Token::TokenType::TOKEN_EOF},
     };
-    auto lexer = MockLexer(std::cin);
+    auto lexer = ::testing::NiceMock<MockLexer>(std::cin);
     ON_CALL(lexer, get()).WillByDefault([&token_list]() -> Token {
         auto value = token_list.front();
         token_list.pop_front();
@@ -109,7 +109,7 @@ TEST(ParserTests, BinaryOperatorExpressionsGetParsedWithCorrectPrecedence1)
         Token{Token::TokenType::TOKEN_NUMBER, 5.0},
         Token{Token::TokenType::TOKEN_EOF},
     };
-    auto lexer = MockLexer(std::cin);
+    auto lexer = ::testing::NiceMock<MockLexer>(std::cin);
     ON_CALL(lexer, get()).WillByDefault([&token_list]() -> Token {
         auto value = token_list.front();
         token_list.pop_front();
@@ -145,7 +145,7 @@ TEST(ParserTests, BinaryOperatorExpressionsGetParsedWithCorrectPrecedence2)
         Token{Token::TokenType::TOKEN_NUMBER, 5.0},
         Token{Token::TokenType::TOKEN_EOF},
     };
-    auto lexer = MockLexer(std::cin);
+    auto lexer = ::testing::NiceMock<MockLexer>(std::cin);
     ON_CALL(lexer, get()).WillByDefault([&token_list]() -> Token {
         auto value = token_list.front();
         token_list.pop_front();
@@ -181,7 +181,7 @@ TEST(ParserTests, BracketedBinaryExpressionsGetParsed)
         Token{Token::TokenType::TOKEN_SPECIAL, ')'},
         Token{Token::TokenType::TOKEN_EOF},
     };
-    auto lexer = MockLexer(std::cin);
+    auto lexer = ::testing::NiceMock<MockLexer>(std::cin);
     ON_CALL(lexer, get()).WillByDefault([&token_list]() -> Token {
         auto value = token_list.front();
         token_list.pop_front();
@@ -217,7 +217,7 @@ TEST(ParserTests, GeneratesTheCorrectParsedExpression)
         Token{Token::TokenType::TOKEN_SPECIAL, ')'},
         Token{Token::TokenType::TOKEN_EOF},
     };
-    auto lexer = MockLexer(std::cin);
+    auto lexer = ::testing::NiceMock<MockLexer>(std::cin);
     ON_CALL(lexer, get()).WillByDefault([&token_list]() -> Token {
         auto value = token_list.front();
         token_list.pop_front();
@@ -246,7 +246,7 @@ TEST(ParserTests, ParsesFunctionPrototypeCorrectly)
         Token{Token::TokenType::TOKEN_SPECIAL, ')'},
         Token{Token::TokenType::TOKEN_EOF},
     };
-    auto lexer = MockLexer(std::cin);
+    auto lexer = ::testing::NiceMock<MockLexer>(std::cin);
     ON_CALL(lexer, get()).WillByDefault([&token_list]() -> Token {
         auto value = token_list.front();
         token_list.pop_front();
