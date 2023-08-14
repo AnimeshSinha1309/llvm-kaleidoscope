@@ -38,26 +38,27 @@ llvm::Function* JITEvaluatorLLVM::get_function(const std::string& name)
     return nullptr;
 }
 
-// Handing top-level expressions
 llvm::Function* JITEvaluatorLLVM::operator()(std::unique_ptr<ExprAST>&& ast)
 {
     auto generated_code = (*this)(std::move(ast));
     auto resource_tracker = this->jit->get_main_jit_dylib().createResourceTracker();
 
-    auto thread_safe_module = llvm::orc::ThreadSafeModule(std::move(this->module), std::move(this->context));
-    this->exit_on_error(this->jit->add_module(std::move(thread_safe_module), resource_tracker));
+    this->exit_on_error(
+        this->jit->add_module(
+            llvm::orc::ThreadSafeModule(std::move(this->module), std::move(this->context)),
+            resource_tracker)
+    );
     this->reinitialize_module();
 
     auto expr_symbol = this->exit_on_error(this->jit->lookup("__anon_expr"));
 
     double (*resultant_value_generator)() = expr_symbol.getAddress().toPtr<double (*)()>();
-    std::cout << resultant_value_generator() << std::endl;
+    this->last_value = resultant_value_generator();
 
     this->exit_on_error(resource_tracker->remove());
     return generated_code;
 }
 
-// Handling function definitions
 llvm::Function* JITEvaluatorLLVM::operator()(std::unique_ptr<FunctionAST>&& ast)
 {
     auto prototype_copy = std::unique_ptr<FunctionPrototypeAST>(ast->prototype.get());
@@ -65,19 +66,36 @@ llvm::Function* JITEvaluatorLLVM::operator()(std::unique_ptr<FunctionAST>&& ast)
 
     auto generated_code = CodeGeneratorLLVM::operator()(std::move(ast));
     this->fpm->run(*generated_code);
+
+    this->exit_on_error(
+        this->jit->add_module(
+            llvm::orc::ThreadSafeModule(std::move(this->module), std::move(this->context)))
+    );
+    this->reinitialize_module();
+
     return generated_code;
 }
 
-// Handling external linkage
 llvm::Function* JITEvaluatorLLVM::operator()(std::unique_ptr<FunctionPrototypeAST>&& ast)
+{
+    this->function_protos[ast->name] = std::move(ast);
+    return CodeGeneratorLLVM::operator()(std::move(ast));
+}
+
+llvm::Function* JITEvaluatorLLVM::operator()(std::monostate&& ast)
 {
     return CodeGeneratorLLVM::operator()(std::move(ast));
 }
 
-// Handling statements with parsing errors in them
-llvm::Function* JITEvaluatorLLVM::operator()(std::monostate&& ast)
+std::optional<double> JITEvaluatorLLVM::get()
 {
-    return CodeGeneratorLLVM::operator()(std::move(ast));
+    this->last_value = std::nullopt;
+    return this->last_value;
+}
+
+std::optional<double> JITEvaluatorLLVM::peek()
+{
+    return this->last_value;
 }
 
 // Copied and adapted from:

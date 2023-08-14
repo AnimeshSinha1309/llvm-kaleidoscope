@@ -65,6 +65,7 @@ class JITEvaluatorLLVM : CodeGeneratorLLVM
 private:
     void reinitialize_module();
     llvm::Function* get_function(const std::string& name) override;
+    std::optional<double> last_value = std::nullopt;
 
 public:
     JITEvaluatorLLVM();
@@ -77,6 +78,9 @@ public:
     virtual llvm::Function* operator()(std::unique_ptr<FunctionPrototypeAST>&& ast) override;
     // Handling statements with parsing errors in them
     virtual llvm::Function* operator()(std::monostate&& ast) override;
+
+    virtual std::optional<double> get();
+    virtual std::optional<double> peek();
 };
 
 }
